@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Roles dentro de cada Despacho (Tenant) - Mapped to String for SQLite
+// SUPER_ADMIN, FIRM_ADMIN, LAWYER, PARALEGAL, ACCOUNTING, READ_ONLY
+
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String?  @unique
+  createdAt   DateTime @default(now())
+  
+  users       User[]
+  clients     Client[]
+  caseFiles   CaseFile[]
+  documents   Document[]
+  auditLogs   AuditLog[]
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          String   @default("LAWYER")
+  
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  auditLogs     AuditLog[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Client {
+  id          String   @id @default(uuid())
+  name        String
+  email       String?
+  phone       String?
+  type        String   @default("INDIVIDUAL") // INDIVIDUAL, COMPANY
+  nifCif      String?
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  caseFiles   CaseFile[]
+  interactions Interaction[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CaseFile {
+  id          String   @id @default(uuid())
+  title       String
+  reference   String?  // Ej: EXP-2023-0012
+  status      String   @default("OPEN") // OPEN, CLOSED, ARCHIVED
+  description String?
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  
+  documents   Document[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  name        String
+  url         String
+  size        Int?
+  mimetype    String?
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  caseFileId  String
+  caseFile    CaseFile @relation(fields: [caseFileId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}
+
+// Mapped to String for SQLite
+// EMAIL, WHATSAPP, CALL, NOTE
+
+model Interaction {
+  id          String   @id @default(uuid())
+  type        String
+  content     String?
+  
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String   // CREATE, UPDATE, DELETE
+  entity      String   // CLIENT, CASEFILE, USER
+  entityId    String
+  ipAddress   String?
+  details     String?  // Json mapped to String for SQLite
+  
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}
