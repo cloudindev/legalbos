@@ -155,7 +155,7 @@ export default function ClientDetailsPage() {
                     <Button variant="outline" className="border-gray-200 text-gray-700 font-bold hover:bg-gray-50">
                         Editar Cliente
                     </Button>
-                    <Button className="bg-[#0B1528] hover:bg-slate-800 text-white font-bold shadow-sm">
+                    <Button className="bg-[#0B1528] hover:bg-slate-800 text-white font-bold shadow-sm" onClick={() => router.push("/dashboard/cases/new")}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Añadir Expediente
                     </Button>
@@ -430,12 +430,51 @@ export default function ClientDetailsPage() {
                 {/* Tab: Expedientes */}
                 <TabsContent value="cases" className="mt-0">
                     <Card className="border-gray-100 shadow-sm bg-white">
-                        <div className="p-20 text-center text-gray-400 font-medium flex flex-col items-center">
-                            <Briefcase className="h-20 w-20 text-gray-100 mb-6" />
-                            <p className="text-xl">Expedientes del Cliente</p>
-                            <p className="text-sm text-gray-300 mt-2">Aquí aparecerá el historial de casos activos y cerrados.</p>
-                            <Button className="mt-6 bg-[#0B1528]">Nuevo Expediente</Button>
+                        <div className="p-6 flex items-center justify-between border-b border-gray-100">
+                            <h3 className="text-xl font-bold text-[#0B1528]">Expedientes Vinculados</h3>
+                            <Button variant="outline" size="sm" className="font-bold bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100" onClick={() => router.push("/dashboard/cases/new")}>
+                                <Plus className="mr-2 h-4 w-4" /> Nuevo Expediente
+                            </Button>
                         </div>
+                        <CardContent className="p-0">
+                            {client.caseFiles && client.caseFiles.length > 0 ? (
+                                <ul className="divide-y divide-gray-100">
+                                    {client.caseFiles.map((c: any) => (
+                                        <li key={c.id} className="p-6 hover:bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between transition-colors cursor-pointer group" onClick={() => router.push(`/dashboard/cases/${c.id}`)}>
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm">
+                                                    <Briefcase className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{c.title || "Sin título"}</p>
+                                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5">
+                                                        Ref: {c.reference || "N/A"} • Creado el {new Date(c.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 sm:mt-0 flex items-center gap-4">
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${c.status === "OPEN" ? "bg-emerald-100 text-emerald-700" :
+                                                    c.status === "CLOSED" ? "bg-gray-100 text-gray-700" :
+                                                        "bg-amber-100 text-amber-700"
+                                                    }`}>
+                                                    {c.status === "OPEN" ? "Activo" : c.status === "CLOSED" ? "Cerrado" : c.status}
+                                                </span>
+                                                <Button variant="ghost" size="icon" className="text-gray-300 group-hover:text-[#0B1528] transition-colors">
+                                                    <ArrowLeft className="h-5 w-5 rotate-180" />
+                                                </Button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="p-20 text-center text-gray-400 font-medium flex flex-col items-center">
+                                    <Briefcase className="h-20 w-20 text-gray-100 mb-6" />
+                                    <p className="text-xl">Expedientes del Cliente</p>
+                                    <p className="text-sm text-gray-300 mt-2">Aquí aparecerá el historial de casos activos y cerrados.</p>
+                                    <Button className="mt-6 bg-[#0B1528]" onClick={() => router.push("/dashboard/cases/new")}>Nuevo Expediente</Button>
+                                </div>
+                            )}
+                        </CardContent>
                     </Card>
                 </TabsContent>
             </Tabs>
