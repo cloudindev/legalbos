@@ -1,7 +1,7 @@
 "use server"
 
 import prisma from "@/lib/db/prisma"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 
 export async function registerFirmAction(firmName: string, name: string, email: string, password: string) {
     if (!firmName || !name || !email || !password) {
