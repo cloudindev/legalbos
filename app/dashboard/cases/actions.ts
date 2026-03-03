@@ -105,25 +105,29 @@ export async function getCaseFileById(id: string) {
 
 export async function createCaseFile(data: any) {
     const session = await auth()
-    if (!session?.user?.tenantId) throw new Error("No autorizado")
+    if (!session?.user?.tenantId) return { success: false, error: "No autorizado" }
 
-    // Destructure assignedUsers (array of user IDs)
     const { assignedUserIds, ...restData } = data
 
-    const caseFile = await prisma.caseFile.create({
-        data: {
-            ...restData,
-            tenantId: session.user.tenantId,
-            ...(assignedUserIds?.length > 0 && {
-                assignedUsers: {
-                    connect: assignedUserIds.map((id: string) => ({ id }))
-                }
-            })
-        }
-    })
+    try {
+        const caseFile = await prisma.caseFile.create({
+            data: {
+                ...restData,
+                tenantId: session.user.tenantId,
+                ...(assignedUserIds?.length > 0 && {
+                    assignedUsers: {
+                        connect: assignedUserIds.map((id: string) => ({ id }))
+                    }
+                })
+            }
+        })
 
-    revalidatePath("/dashboard/cases")
-    return caseFile
+        revalidatePath("/dashboard/cases")
+        return { success: true, data: JSON.parse(JSON.stringify(caseFile)) }
+    } catch (e: any) {
+        console.error("Error creating case:", e)
+        return { success: false, error: "Error de BD: " + e.message }
+    }
 }
 
 export async function updateCaseFile(id: string, data: any) {

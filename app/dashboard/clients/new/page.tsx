@@ -65,10 +65,22 @@ export default function NewClientPage() {
                 })
             }
 
-            const newClient = await createClient(dataToSubmit)
-            router.push(`/dashboard/clients/${newClient.id}`)
+            const response = await createClient(dataToSubmit)
+
+            if (!response.success) {
+                alert("Error al dar de alta el cliente: " + response.error)
+                setLoading(false)
+                return
+            }
+
+            if (response.data?.id) {
+                router.push(`/dashboard/clients/${response.data.id}`)
+            } else {
+                setLoading(false)
+            }
         } catch (error) {
             console.error(error)
+            alert("Error de red o conexión fallida.")
             setLoading(false)
         }
     }

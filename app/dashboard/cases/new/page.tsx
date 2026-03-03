@@ -83,19 +83,25 @@ export default function NewCasePage() {
             const firstName = parts[0]
             const lastName = parts.slice(1).join(' ')
 
-            const newClient = await createClient({
+            const response = await createClient({
                 type: "INDIVIDUAL",
                 firstName,
                 lastName: lastName || undefined
             })
 
-            if (newClient) {
-                setClients(prev => [...prev, newClient])
-                setFormData(prev => ({ ...prev, clientId: newClient.id }))
+            if (!response.success) {
+                alert("Error creando cliente: " + response.error)
+                return
+            }
+
+            if (response.data) {
+                setClients(prev => [...prev, response.data])
+                setFormData(prev => ({ ...prev, clientId: response.data.id }))
             }
             setIsClientModalOpen(false)
         } catch (error) {
             console.error(error)
+            alert("Error de conexión al crear cliente rápido")
         }
     }
 
@@ -108,13 +114,23 @@ export default function NewCasePage() {
 
         setSubmitting(true)
         try {
-            const newCase = await createCaseFile({
+            const response = await createCaseFile({
                 ...formData,
                 assignedUserIds
             })
-            router.push(`/dashboard/cases/${newCase.id}`)
+            if (!response.success) {
+                alert("Error creando expediente: " + response.error)
+                setSubmitting(false)
+                return
+            }
+            if (response.data?.id) {
+                router.push(`/dashboard/cases/${response.data.id}`)
+            } else {
+                setSubmitting(false)
+            }
         } catch (error) {
             console.error(error)
+            alert("Error de conexión al abrir expediente")
             setSubmitting(false)
         }
     }

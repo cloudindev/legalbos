@@ -35,7 +35,7 @@ export async function getClientById(id: string) {
 
 export async function createClient(data: any) {
     const session = await auth()
-    if (!session?.user?.tenantId) throw new Error("No autorizado")
+    if (!session?.user?.tenantId) return { success: false, error: "No autorizado" }
 
     try {
         const client = await prisma.client.create({
@@ -45,10 +45,10 @@ export async function createClient(data: any) {
             }
         })
         revalidatePath("/dashboard/clients")
-        return JSON.parse(JSON.stringify(client))
+        return { success: true, data: JSON.parse(JSON.stringify(client)) }
     } catch (e: any) {
         console.error("Error creating client:", e)
-        throw new Error("Error en base de datos: " + e.message)
+        return { success: false, error: "Error en base de datos: " + e.message }
     }
 }
 
