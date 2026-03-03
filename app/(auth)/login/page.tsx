@@ -15,6 +15,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("password123")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -30,12 +31,13 @@ export default function LoginPage() {
 
             if (res?.error) {
                 setError("Credenciales incorrectas")
-            } else {
-                window.location.href = "/dashboard"
+                setLoading(false)
+            } else if (res?.ok) {
+                router.push("/dashboard")
+                router.refresh()
             }
         } catch (err) {
-            setError("Error en el servidor")
-        } finally {
+            setError("Error de conexión con el servidor")
             setLoading(false)
         }
     }
