@@ -3,6 +3,7 @@ import type { NextAuthConfig } from "next-auth"
 export default {
     providers: [], // Empty for now. Database logic moved to auth.ts for Node.js runtime
     secret: process.env.AUTH_SECRET,
+    trustHost: true,
     session: { strategy: "jwt" },
     callbacks: {
         async jwt({ token, user }) {
