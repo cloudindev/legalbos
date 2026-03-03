@@ -3,121 +3,251 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Roles dentro de cada Despacho (Tenant) - Mapped to String for SQLite
-// SUPER_ADMIN, FIRM_ADMIN, LAWYER, PARALEGAL, ACCOUNTING, READ_ONLY
-
 model Tenant {
-  id          String   @id @default(uuid())
-  name        String
-  domain      String?  @unique
-  createdAt   DateTime @default(now())
-  
-  users       User[]
-  clients     Client[]
-  caseFiles   CaseFile[]
-  documents   Document[]
-  auditLogs   AuditLog[]
+  id        String     @id @default(uuid())
+  name      String
+  domain    String?    @unique
+  createdAt DateTime   @default(now())
+  auditLogs AuditLog[]
+  caseFiles CaseFile[]
+  clients   Client[]
+  documents           Document[]
+  users               User[]
+  contactCategories   ContactCategory[]
+  directoryContacts   DirectoryContact[]
+  casePhases          CasePhase[]
+  caseTypes           CaseType[]
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  passwordHash  String
-  name          String
-  role          String   @default("LAWYER")
-  
-  tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  auditLogs     AuditLog[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String       @id @default(uuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  role         Role         @default(LAWYER)
+  tenantId     String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  annotations  Annotation[]
+  auditLogs    AuditLog[]
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedCases CaseFile[]   @relation("CaseFileUsers")
 }
 
 model Client {
-  id          String   @id @default(uuid())
-  name        String
-  email       String?
-  phone       String?
-  type        String   @default("INDIVIDUAL") // INDIVIDUAL, COMPANY
-  nifCif      String?
-  
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  caseFiles   CaseFile[]
+  id           String        @id @default(uuid())
+  email        String?
+  phone        String?
+  type         String        @default("INDIVIDUAL")
+  nifCif       String?
+  tenantId     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  address      String?
+  city         String?
+  companyName  String?
+  country      String?
+  firstName    String?
+  lastName1    String?
+  lastName2    String?
+  mobile       String?
+  postalCode   String?
+  province     String?
+  tradeName    String?
+  annotations  Annotation[]
+  bankAccounts BankAccount[]
+  caseFiles    CaseFile[]
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contacts     Contact[]
   interactions Interaction[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  documents    Document[]
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String?
+  email     String?
+  phone     String?
+  jobTitle  String?
+  clientId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model BankAccount {
+  id        String  @id @default(uuid())
+  iban      String
+  swift     String?
+  bankName  String?
+  isDefault Boolean @default(true)
+  clientId  String
+  client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Annotation {
+  id        String   @id @default(uuid())
+  content   String
+  isPinned  Boolean  @default(false)
+  authorId  String
+  clientId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 model CaseFile {
-  id          String   @id @default(uuid())
-  title       String
-  reference   String?  // Ej: EXP-2023-0012
-  status      String   @default("OPEN") // OPEN, CLOSED, ARCHIVED
-  description String?
+  id               String            @id @default(uuid())
+  title            String
+  reference        String?
+  status           String            @default("OPEN")
+  description      String?
   
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  // Phase & Type
+  phaseId          String?
+  typeId           String?
   
-  clientId    String
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  // Conflicting parties
+  opposingParty    String?
+  opposingLawyerId String?
+
+  tenantId         String
+  clientId         String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   
-  documents   Document[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  client           Client            @relation(fields: [clientId], references: [id])
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents        Document[]
+  phase            CasePhase?        @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  type             CaseType?         @relation(fields: [typeId], references: [id], onDelete: SetNull)
+  opposingLawyer   DirectoryContact? @relation("CaseFilesOpposingLawyer", fields: [opposingLawyerId], references: [id], onDelete: SetNull)
+  assignedUsers    User[]            @relation("CaseFileUsers")
 }
 
 model Document {
-  id          String   @id @default(uuid())
-  name        String
-  url         String
-  size        Int?
-  mimetype    String?
-  
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  caseFileId  String
-  caseFile    CaseFile @relation(fields: [caseFileId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  name       String
+  url        String
+  size       Int?
+  mimetype   String?
+  tenantId   String
+  caseFileId String?
+  clientId   String?
+  createdAt  DateTime @default(now())
+
+  caseFile CaseFile? @relation(fields: [caseFileId], references: [id], onDelete: Cascade)
+  client   Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
-// Mapped to String for SQLite
-// EMAIL, WHATSAPP, CALL, NOTE
-
 model Interaction {
-  id          String   @id @default(uuid())
-  type        String
-  content     String?
-  
-  clientId    String
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
+  id        String          @id @default(uuid())
+  type      InteractionType
+  content   String?
+  clientId  String
+  createdAt DateTime        @default(now())
+  client    Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
-  id          String   @id @default(uuid())
-  action      String   // CREATE, UPDATE, DELETE
-  entity      String   // CLIENT, CASEFILE, USER
-  entityId    String
-  ipAddress   String?
-  details     String?  // Json mapped to String for SQLite
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String
+  ipAddress String?
+  details   Json?
+  userId    String?
+  tenantId  String
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  SUPER_ADMIN
+  FIRM_ADMIN
+  LAWYER
+  PARALEGAL
+  ACCOUNTING
+  READ_ONLY
+}
+
+enum InteractionType {
+  EMAIL
+  WHATSAPP
+  CALL
+  NOTE
+}
+
+model ContactCategory {
+  id        String             @id @default(uuid())
+  name      String
+  tenantId  String
+  createdAt DateTime           @default(now())
   
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant    Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contacts  DirectoryContact[]
+
+  @@unique([name, tenantId])
+}
+
+model DirectoryContact {
+  id          String           @id @default(uuid())
+  type        String           @default("INDIVIDUAL") // INDIVIDUAL or COMPANY
+  firstName   String?
+  lastName    String?
+  companyName String?
+  nifCif      String?
+  email       String?
+  phone       String?
+  mobile      String?
+  address     String?
+  city        String?
+  province    String?
+  postalCode  String?
+  country     String?
+  notes       String?
   
+  categoryId  String?
   tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  category    ContactCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   
-  createdAt   DateTime @default(now())
+  opposingCases CaseFile[]     @relation("CaseFilesOpposingLawyer")
+}
+
+model CasePhase {
+  id        String     @id @default(uuid())
+  name      String
+  order     Int        @default(0)
+  tenantId  String
+  createdAt DateTime   @default(now())
+  
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  caseFiles CaseFile[]
+
+  @@unique([name, tenantId])
+}
+
+model CaseType {
+  id        String     @id @default(uuid())
+  name      String
+  tenantId  String
+  createdAt DateTime   @default(now())
+  
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  caseFiles CaseFile[]
+
+  @@unique([name, tenantId])
 }

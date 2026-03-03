@@ -10,35 +10,46 @@ import {
     FileText,
     LayoutDashboard,
     PlusCircle,
-    Settings
+    Settings,
+    Contact
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Active Cases", href: "/dashboard/cases", icon: Briefcase },
-    { name: "Clients", href: "/dashboard/clients", icon: Users },
-    { name: "Court Schedule", href: "/dashboard/calendar", icon: Calendar },
-    { name: "Billing & Invoices", href: "/dashboard/billing", icon: Receipt },
-    { name: "Documents", href: "/dashboard/documents", icon: FileText },
+    { name: "Resumen", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Expedientes", href: "/dashboard/cases", icon: Briefcase },
+    { name: "Clientes", href: "/dashboard/clients", icon: Users },
+    { name: "Calendario", href: "/dashboard/calendar", icon: Calendar },
+    { name: "Documentos", href: "/dashboard/documents", icon: FileText },
+    { name: "Contactos", href: "/dashboard/directory", icon: Contact },
 ]
 
-export function Sidebar() {
+export function Sidebar({ user }: { user?: any }) {
     const pathname = usePathname()
+
+    // Cálculo de nombre iniciales y rol
+    const getInitials = (name?: string) => {
+        if (!name) return "US"
+        return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()
+    }
+
+    const displayName = user?.name || "Usuario"
+    const displayRole = user?.role === "SUPER_ADMIN" ? "Admin cuenta" : "Socio / Abogado"
+    const initials = getInitials(user?.name)
 
     return (
         <div className="flex h-full w-64 flex-col border-r bg-white">
             {/* Brand Logo */}
             <div className="flex h-20 shrink-0 items-center px-6 border-b border-transparent">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0B1528] text-white">
                         <Briefcase className="h-6 w-6" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-xl font-bold leading-tight text-gray-900 tracking-tight">Lexington</span>
-                        <span className="text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Law Firm CRM</span>
+                        <span className="text-xl font-bold leading-tight text-[#0B1528] tracking-tight">Legalbos</span>
+                        <span className="text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Gestión Legal</span>
                     </div>
                 </div>
             </div>
@@ -54,14 +65,14 @@ export function Sidebar() {
                                 href={item.href}
                                 className={cn(
                                     isActive
-                                        ? "bg-emerald-50 text-emerald-700 font-semibold"
+                                        ? "bg-blue-50 text-[#0B1528] font-bold border-r-4 border-[#0B1528]"
                                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium",
-                                    "group flex items-center rounded-lg px-3 py-2.5 text-sm transition-colors"
+                                    "group flex items-center rounded-r-none rounded-l-lg px-3 py-2.5 text-sm transition-colors"
                                 )}
                             >
                                 <item.icon
                                     className={cn(
-                                        isActive ? "text-emerald-700" : "text-gray-400 group-hover:text-gray-500",
+                                        isActive ? "text-[#0B1528]" : "text-gray-400 group-hover:text-gray-500",
                                         "mr-3 h-5 w-5 flex-shrink-0"
                                     )}
                                     aria-hidden="true"
@@ -75,22 +86,24 @@ export function Sidebar() {
 
             {/* Bottom Actions & User Profile */}
             <div className="flex flex-col gap-4 border-t border-gray-100 p-4">
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm font-medium">
+                <Button className="w-full bg-[#0B1528] hover:bg-slate-800 text-white rounded-lg shadow-sm font-bold">
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    New Case File
+                    Nuevo Expediente
                 </Button>
 
                 <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f6c28f] text-white font-bold">
-                        MS
+                        {initials}
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-gray-900 truncate">Marcus Sterling</span>
-                        <span className="text-[11px] text-gray-500 truncate">Senior Partner</span>
+                        <span className="text-sm font-semibold text-gray-900 truncate">{displayName}</span>
+                        <span className="text-[11px] text-gray-500 truncate">{displayRole}</span>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600">
-                        <Settings className="h-4 w-4" />
-                    </Button>
+                    <Link href="/dashboard/settings">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600">
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </div>

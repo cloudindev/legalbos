@@ -35,12 +35,9 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         async jwt({ token, user }) {
             if (user) {
                 // Here we extend the JWT with tenant and role on initial login
-                // 'user' type needs to be aligned with Prisma User model in production
-                const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
-                if (dbUser) {
-                    token.tenantId = dbUser.tenantId
-                    token.role = dbUser.role
-                }
+                // 'user' param from credentials authorize already contains tenantId
+                token.tenantId = (user as any).tenantId
+                token.role = (user as any).role
             }
             return token
         },

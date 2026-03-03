@@ -1,11 +1,14 @@
 import { ReactNode } from "react"
+import { auth } from "@/auth"
 import { Sidebar } from "@/components/layout/Sidebar"
 import Topbar from "@/components/layout/Topbar"
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+    const session = await auth()
+
     return (
         <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-            <Sidebar />
+            <Sidebar user={session?.user} />
             <div className="flex flex-1 flex-col overflow-hidden">
                 <Topbar />
                 <main className="flex-1 overflow-y-auto bg-gray-50/50 p-6">

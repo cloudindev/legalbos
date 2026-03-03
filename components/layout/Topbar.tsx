@@ -15,8 +15,8 @@ export default async function Topbar() {
                     </div>
                     <Input
                         type="search"
-                        placeholder="Search cases, files, or clients..."
-                        className="block w-full rounded-lg border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm shadow-none"
+                        placeholder="Buscar expedientes, documentos o clientes..."
+                        className="block w-full rounded-lg border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-3 text-sm focus:border-[#0B1528] focus:ring-[#0B1528] sm:text-sm shadow-none"
                     />
                 </div>
             </div>
@@ -36,8 +36,8 @@ export default async function Topbar() {
 
                 <div className="h-6 w-px bg-gray-200" />
 
-                <button type="button" className="text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-                    Firm Settings
+                <button type="button" className="text-sm font-semibold text-gray-700 hover:text-[#0B1528] transition-colors">
+                    Ajustes del Despacho
                 </button>
             </div>
         </header>

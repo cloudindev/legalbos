@@ -7,16 +7,15 @@ export default middleware((req) => {
     const { nextUrl } = req;
     const isLoggedIn = !!req.auth;
 
-    // Si no está logueado y no está en login, redirigir a login
-    if (!isLoggedIn && nextUrl.pathname !== "/login") {
-        // Permitir llamados a NextAuth internamente (GET/POST a /api/auth) sin bloquear
-        if (!nextUrl.pathname.startsWith("/api/auth")) {
-            return Response.redirect(new URL("/login", nextUrl));
-        }
+    const isPublicRoute = nextUrl.pathname === "/" || nextUrl.pathname === "/register" || nextUrl.pathname === "/login" || nextUrl.pathname.startsWith("/api/auth");
+
+    // Si no está logueado y no está en una ruta pública, redirigir a login
+    if (!isLoggedIn && !isPublicRoute) {
+        return Response.redirect(new URL("/login", nextUrl));
     }
 
-    // Si está logueado e intentando ir a la raíz (/) o (/login), mandar a dashboard
-    if (isLoggedIn && (nextUrl.pathname === "/" || nextUrl.pathname === "/login")) {
+    // Si está logueado e intentando ir a login o registro, mandar a dashboard
+    if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/register")) {
         return Response.redirect(new URL("/dashboard", nextUrl));
     }
 });
