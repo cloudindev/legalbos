@@ -103,7 +103,7 @@ export default function ClientsPage() {
                             {loading ? (
                                 <tr>
                                     <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
-                                        Cargando directorio de clientes...
+
                                     </td>
                                 </tr>
                             ) : clients.length === 0 ? (

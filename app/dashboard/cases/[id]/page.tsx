@@ -39,7 +39,7 @@ export default function CaseDetailPage() {
         }
     }
 
-    if (loading) return <div className="p-8 text-center">Cargando expediente...</div>
+    if (loading) return null
     if (!caseFile) return <div className="p-8 text-center text-red-500 font-bold">Expediente no encontrado</div>
 
     const clientName = caseFile.client

@@ -24,7 +24,7 @@ export default function DirectoryContactDetailPage() {
     }, [params.id])
 
     if (loading) {
-        return <div className="p-8 text-center text-gray-500 font-medium">Cargando detalles...</div>
+        return null
     }
 
     if (!contact) {

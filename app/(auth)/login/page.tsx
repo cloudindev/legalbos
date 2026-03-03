@@ -59,10 +59,10 @@ export default function LoginPage() {
 
                 <div className="relative z-20 mt-auto pb-32 max-w-lg">
                     <h1 className="text-5xl font-extrabold text-white leading-[1.1] tracking-tight">
-                        Empowering <br /> Justice with <br /> Modern <br /> Management
+                        Potenciando la <br /> Justicia con <br /> Gestión <br /> Moderna
                     </h1>
                     <p className="mt-8 text-lg text-blue-100/70 leading-relaxed font-medium">
-                        Streamline your legal practice with our all-in-one suite for case management, client intake, and automated scheduling.
+                        Optimiza tu práctica legal con nuestra suite todo-en-uno para gestión de expedientes, captación de clientes y automatización de procesos.
                     </p>
                 </div>
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
                         <img className="inline-block h-10 w-10 rounded-full ring-2 ring-[#0B1528]" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
                         <img className="inline-block h-10 w-10 rounded-full ring-2 ring-[#0B1528]" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
                     </div>
-                    <p className="text-sm font-medium text-blue-100/60">Trusted by 5,000+ law firms worldwide</p>
+                    <p className="text-sm font-medium text-blue-100/60">Confiado por más de 5,000 despachos en todo el mundo</p>
                 </div>
             </div>
 
@@ -87,21 +87,21 @@ export default function LoginPage() {
                     </div>
 
                     <div>
-                        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">Welcome Back</h2>
+                        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">Bienvenido de nuevo</h2>
                         <p className="mt-2 text-sm text-gray-500 font-medium">
-                            Enter your credentials to access your dashboard
+                            Introduce tus credenciales para acceder a tu panel
                         </p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-6 mt-10">
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-sm font-bold text-gray-700">Email or Username</Label>
+                            <Label htmlFor="email" className="text-sm font-bold text-gray-700">Correo Electrónico</Label>
                             <div className="relative">
                                 <span className="absolute left-3 top-3 text-gray-400 font-medium">@</span>
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="e.g. counsel@firm.com"
+                                    placeholder="ej. abogado@despacho.com"
                                     className="pl-9 h-12 rounded-lg border-gray-200 shadow-sm focus-visible:ring-[#1c4ed8]"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -112,15 +112,15 @@ export default function LoginPage() {
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="password" className="text-sm font-bold text-gray-700">Password</Label>
-                                <a href="#" className="text-xs font-bold text-[#1c4ed8] hover:underline">Forgot password?</a>
+                                <Label htmlFor="password" className="text-sm font-bold text-gray-700">Contraseña</Label>
+                                <a href="#" className="text-xs font-bold text-[#1c4ed8] hover:underline">¿Has olvidado la contraseña?</a>
                             </div>
                             <div className="relative">
                                 <svg className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                 <Input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Enter your password"
+                                    placeholder="Introduce tu contraseña"
                                     className="pl-10 h-12 rounded-lg border-gray-200 shadow-sm pr-10 focus-visible:ring-[#1c4ed8]"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -139,7 +139,7 @@ export default function LoginPage() {
                         <div className="flex items-center py-2">
                             <Checkbox id="remember" className="border-gray-300 rounded text-[#1c4ed8]" />
                             <label htmlFor="remember" className="ml-2 block text-sm font-medium text-gray-600">
-                                Remember this device
+                                Recordar este dispositivo
                             </label>
                         </div>
 
@@ -150,7 +150,7 @@ export default function LoginPage() {
                             disabled={loading}
                             className="w-full h-12 bg-[#1c4ed8] hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm text-base"
                         >
-                            {loading ? "Signing In..." : "Sign In"}
+                            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
                         </Button>
 
                         <div className="relative py-4">
@@ -158,7 +158,7 @@ export default function LoginPage() {
                                 <span className="w-full border-t border-gray-200" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-4 font-bold text-gray-400 tracking-wider">Or continue with</span>
+                                <span className="bg-white px-4 font-bold text-gray-400 tracking-wider">O continuar con</span>
                             </div>
                         </div>
 
@@ -174,15 +174,15 @@ export default function LoginPage() {
                         </div>
 
                         <p className="text-center text-sm font-medium text-gray-500 pt-6">
-                            Don't have an account yet? <a href="#" className="font-bold text-[#1c4ed8] hover:underline">Start a free trial</a>
+                            ¿Aún no tienes cuenta? <a href="#" className="font-bold text-[#1c4ed8] hover:underline">Empieza una prueba gratuita</a>
                         </p>
                     </form>
 
                     <div className="mt-auto pt-20 text-center text-xs font-medium text-gray-400 space-x-4">
-                        <a href="#" className="hover:text-gray-600">Terms of Service</a>
-                        <a href="#" className="hover:text-gray-600">Privacy Policy</a>
-                        <a href="#" className="hover:text-gray-600">Cookie Settings</a>
-                        <p className="mt-4">© 2024 Legal CRM Solutions Inc. All rights reserved.</p>
+                        <a href="#" className="hover:text-gray-600">Condiciones de Servicio</a>
+                        <a href="#" className="hover:text-gray-600">Política de Privacidad</a>
+                        <a href="#" className="hover:text-gray-600">Cookies</a>
+                        <p className="mt-4">© 2026 Legal CRM Solutions Inc. Todos los derechos reservados.</p>
                     </div>
                 </div>
             </div>

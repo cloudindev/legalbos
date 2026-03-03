@@ -99,7 +99,7 @@ export default function CasesPage() {
 
             {loading ? (
                 <div className="flex-1 flex items-center justify-center">
-                    <div className="text-gray-500 font-medium">Cargando expedientes...</div>
+                    <div className="text-gray-500 font-medium"></div>
                 </div>
             ) : viewMode === "list" ? (
                 // LIST VIEW

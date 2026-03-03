@@ -119,7 +119,7 @@ export default function NewCasePage() {
         }
     }
 
-    if (loading) return <div className="p-8 text-center">Cargando datos...</div>
+    if (loading) return null
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">

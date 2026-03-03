@@ -123,7 +123,7 @@ export default function DirectoryPage() {
                             {loading ? (
                                 <tr>
                                     <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
-                                        Cargando agenda de contactos...
+
                                     </td>
                                 </tr>
                             ) : contacts.length === 0 ? (
