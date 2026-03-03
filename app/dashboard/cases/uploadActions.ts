@@ -8,9 +8,13 @@ import Anthropic from "@anthropic-ai/sdk"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false }
-})
+
+function getSupabase() {
+    if (!supabaseUrl || !supabaseKey) return null
+    return createClient(supabaseUrl, supabaseKey, {
+        auth: { persistSession: false }
+    })
+}
 
 const ACTION_GROUPS = [
     { title: "Actuaciones de apertura y alta", items: ["Apertura del expediente", "Alta de cliente", "Alta de parte contraria", "Asignación de abogado responsable", "Alta de procurador", "Clasificación del tipo de asunto", "Carga de documentación inicial", "Firma de hoja de encargo"] },
@@ -43,9 +47,8 @@ export async function uploadDocumentAndProcess(formData: FormData) {
 
     // Tenant info y settings IA
     const tenant = await prisma.tenant.findUnique({
-        where: { id: session.user.tenantId },
-        select: { id: true, aiEnabled: true, claudeApiKey: true }
-    })
+        where: { id: session.user.tenantId }
+    }) as any
 
     if (!tenant) return { success: false, error: "Tenant no encontrado" }
 
@@ -53,6 +56,11 @@ export async function uploadDocumentAndProcess(formData: FormData) {
     // Si queremos un bucket por tenant: `const bucket = tenant.id`
     // Como Supabase tiene límites en la creación dinámica de buckets (max 100), es mejor un único bucket.
     // Pero el usuario pidió: "cada tenant tendrá un bucket". Crearemos o usaremos el bucket "tenant-id".
+
+    const supabase = getSupabase()
+    if (!supabase) {
+        return { success: false, error: "Servicio de almacenamiento (Supabase) no configurado en el servidor." }
+    }
 
     // Check if bucket exists, if not create
     const bucketName = `tenant-${tenant.id}`
@@ -144,14 +152,16 @@ RESUMEN: [El resumen]`
         }
     })
 
+    const annData: any = {
+        content: finalContent,
+        type: finalType,
+        caseFileId,
+        authorId: session.user.id,
+        documentUrl: filePath
+    }
+
     await prisma.annotation.create({
-        data: {
-            content: finalContent,
-            type: finalType,
-            caseFileId,
-            authorId: session.user.id,
-            documentUrl: filePath
-        }
+        data: annData
     })
 
     revalidatePath(`/dashboard/cases/${caseFileId}`)
