@@ -98,7 +98,11 @@ export async function getCaseFileById(id: string) {
             assignedUsers: {
                 select: { id: true, name: true, email: true }
             },
-            documents: true
+            documents: true,
+            annotations: {
+                include: { author: true },
+                orderBy: { createdAt: 'desc' }
+            }
         }
     })
 }
@@ -195,4 +199,30 @@ export async function getFirmUsers() {
         select: { id: true, name: true, role: true, email: true },
         orderBy: { name: 'asc' }
     })
+}
+
+export async function addCaseAnnotation(caseFileId: string, content: string) {
+    const session = await auth()
+    if (!session?.user?.id) return { success: false, error: "No autorizado" }
+
+    const caseFile = await prisma.caseFile.findFirst({
+        where: { id: caseFileId, tenantId: session.user.tenantId }
+    })
+
+    if (!caseFile) return { success: false, error: "Expediente no encontrado" }
+
+    try {
+        await prisma.annotation.create({
+            data: {
+                content,
+                authorId: session.user.id,
+                caseFileId,
+            }
+        })
+        revalidatePath(`/dashboard/cases/${caseFileId}`)
+        return { success: true }
+    } catch (e: any) {
+        console.error("Error creating annotation:", e)
+        return { success: false, error: "Error bd" }
+    }
 }
