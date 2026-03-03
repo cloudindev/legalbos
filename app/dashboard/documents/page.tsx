@@ -65,7 +65,7 @@ export default async function DocumentsPage() {
                                         <FileText className="h-4 w-4 text-muted-foreground" />
                                         {doc.name}
                                     </TableCell>
-                                    <TableCell>{doc.caseFile.title}</TableCell>
+                                    <TableCell>{doc.caseFile?.title || "-"}</TableCell>
                                     <TableCell>{doc.size ? `${(doc.size / 1024 / 1024).toFixed(2)} MB` : "Desconocido"}</TableCell>
                                     <TableCell>{doc.createdAt.toLocaleDateString()}</TableCell>
                                     <TableCell className="text-right">
