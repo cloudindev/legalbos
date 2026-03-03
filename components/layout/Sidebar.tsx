@@ -11,8 +11,10 @@ import {
     LayoutDashboard,
     PlusCircle,
     Settings,
-    Contact
+    Contact,
+    LogOut
 } from "lucide-react"
+import { signOut } from "next-auth/react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -99,11 +101,22 @@ export function Sidebar({ user }: { user?: any }) {
                         <span className="text-sm font-semibold text-gray-900 truncate">{displayName}</span>
                         <span className="text-[11px] text-gray-500 truncate">{displayRole}</span>
                     </div>
-                    <Link href="/dashboard/settings">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600">
-                            <Settings className="h-4 w-4" />
+                    <div className="flex items-center">
+                        <Link href="/dashboard/settings">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-[#0B1528] transition-colors" title="Ajustes">
+                                <Settings className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:text-red-600 transition-colors"
+                            title="Cerrar sesión"
+                            onClick={() => signOut({ callbackUrl: '/login' })}
+                        >
+                            <LogOut className="h-4 w-4" />
                         </Button>
-                    </Link>
+                    </div>
                 </div>
             </div>
         </div>
