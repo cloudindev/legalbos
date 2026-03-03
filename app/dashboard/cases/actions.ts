@@ -9,10 +9,11 @@ export async function getCasePhases() {
     const session = await auth()
     if (!session?.user?.tenantId) return []
 
-    return prisma.casePhase.findMany({
+    const phases = await prisma.casePhase.findMany({
         where: { tenantId: session.user.tenantId },
         orderBy: { order: 'asc' }
     })
+    return JSON.parse(JSON.stringify(phases))
 }
 
 export async function createCasePhase(name: string) {
@@ -88,23 +89,30 @@ export async function getCaseFileById(id: string) {
     const session = await auth()
     if (!session?.user?.tenantId) return null
 
-    return prisma.caseFile.findFirst({
-        where: { id, tenantId: session.user.tenantId },
-        include: {
-            client: true,
-            phase: true,
-            type: true,
-            opposingLawyer: true,
-            assignedUsers: {
-                select: { id: true, name: true, email: true }
-            },
-            documents: true,
-            annotations: {
-                include: { author: true },
-                orderBy: { createdAt: 'desc' }
+    try {
+        const caseFile = await prisma.caseFile.findFirst({
+            where: { id, tenantId: session.user.tenantId },
+            include: {
+                client: true,
+                phase: true,
+                type: true,
+                opposingLawyer: true,
+                assignedUsers: {
+                    select: { id: true, name: true, email: true }
+                },
+                documents: true,
+                annotations: {
+                    include: { author: true },
+                    orderBy: { createdAt: 'desc' }
+                }
             }
-        }
-    })
+        })
+        if (!caseFile) return null
+        return JSON.parse(JSON.stringify(caseFile))
+    } catch (e: any) {
+        console.error("GET CASE ERROR:", e)
+        return null
+    }
 }
 
 export async function createCaseFile(data: any) {
