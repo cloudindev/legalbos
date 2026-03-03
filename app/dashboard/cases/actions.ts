@@ -201,7 +201,7 @@ export async function getFirmUsers() {
     })
 }
 
-export async function addCaseAnnotation(caseFileId: string, content: string) {
+export async function addCaseAnnotation(caseFileId: string, content: string, actionType?: string) {
     const session = await auth()
     if (!session?.user?.id) return { success: false, error: "No autorizado" }
 
@@ -215,6 +215,7 @@ export async function addCaseAnnotation(caseFileId: string, content: string) {
         await prisma.annotation.create({
             data: {
                 content,
+                type: actionType || null,
                 authorId: session.user.id,
                 caseFileId,
             }

@@ -3,9 +3,25 @@
 import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { getCaseFileById, updateCaseFile, getCasePhases, addCaseAnnotation } from "../actions"
-import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check } from "lucide-react"
+import { uploadDocumentAndProcess } from "../uploadActions"
+import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check, FileIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+export const ACTION_GROUPS = [
+    { title: "Actuaciones de apertura y alta", items: ["Apertura del expediente", "Alta de cliente", "Alta de parte contraria", "Asignación de abogado responsable", "Alta de procurador", "Clasificación del tipo de asunto", "Carga de documentación inicial", "Firma de hoja de encargo"] },
+    { title: "Actuaciones de análisis jurídico", items: ["Revisión de documentación", "Estudio de viabilidad", "Análisis de riesgos", "Consulta normativa", "Búsqueda de jurisprudencia", "Elaboración de estrategia", "Reunión interna de valoración"] },
+    { title: "Actuaciones de comunicación con el cliente", items: ["Llamada con cliente", "Reunión presencial", "Videollamada", "Envío de email informativo", "Solicitud de documentación al cliente", "Envío de propuesta de actuación", "Confirmación de instrucciones del cliente", "Comunicación de novedades del expediente"] },
+    { title: "Actuaciones documentales", items: ["Subida de documentos", "Descarga de resoluciones", "Escaneo de pruebas", "Clasificación documental", "Redacción de escritos", "Revisión de contratos", "Preparación de anexos", "Generación de informes jurídicos", "Emisión de minuta u hoja de encargo", "Preparación de poderes o autorizaciones"] },
+    { title: "Actuaciones extrajudiciales", items: ["Requerimiento amistoso", "Envío de burofax", "Reclamación extrajudicial", "Negociación con la parte contraria", "Mediación", "Acto de conciliación", "Propuesta de acuerdo", "Revisión o firma de acuerdo transaccional"] },
+    { title: "Actuaciones judiciales o procesales", items: ["Presentación de demanda", "Presentación de denuncia o querella", "Contestación a demanda", "Presentación de escritos de trámite", "Subsanación de defectos", "Presentación de pruebas", "Impugnación de pruebas", "Personación en procedimiento", "Solicitud de medidas cautelares", "Contestación a requerimientos del juzgado", "Preparación de interrogatorios", "Preparación de testigos", "Preparación de periciales"] },
+    { title: "Actuaciones de seguimiento procesal", items: ["Recepción de notificación", "Control de plazo", "Señalamiento de vista", "Suspensión de juicio", "Cambio de fecha", "Recepción de diligencia", "Recepción de decreto", "Recepción de auto", "Recepción de sentencia", "Registro de vencimientos", "Recordatorio de actuación pendiente"] },
+    { title: "Actuaciones en juicio o comparecencia", items: ["Asistencia a audiencia previa", "Asistencia a juicio", "Comparecencia judicial", "Declaración de parte", "Intervención de testigos", "Ratificación de perito", "Conclusiones", "Registro del resultado de la vista"] },
+    { title: "Actuaciones de recursos", items: ["Análisis de sentencia", "Reunión con cliente para valorar recurso", "Preparación de recurso", "Presentación de apelación", "Oposición a recurso", "Seguimiento del recurso", "Resolución del recurso"] },
+    { title: "Actuaciones de ejecución", items: ["Solicitud de ejecución", "Requerimiento de pago", "Averiguación patrimonial", "Embargo", "Oposición a ejecución", "Liquidación de intereses", "Seguimiento del cumplimiento", "Archivo por satisfacción o insolvencia"] },
+    { title: "Actuaciones económicas y administrativas", items: ["Emisión de presupuesto", "Aprobación de presupuesto", "Emisión de factura", "Registro de provisión de fondos", "Control de pagos", "Reclamación de impago", "Liquidación final", "Cierre económico del expediente"] },
+    { title: "Actuaciones de cierre", items: ["Cierre jurídico del asunto", "Archivo del expediente", "Entrega de documentación al cliente", "Valoración final", "Registro de resultado", "Cierre administrativo", "Cierre definitivo"] }
+]
 
 export default function CaseDetailPage() {
     const params = useParams()
@@ -21,6 +37,9 @@ export default function CaseDetailPage() {
     // Wall states
     const [newAnnotation, setNewAnnotation] = useState("")
     const [submittingAnnotation, setSubmittingAnnotation] = useState(false)
+    const [actionType, setActionType] = useState("")
+    const [attachedFile, setAttachedFile] = useState<File | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         async function load() {
@@ -61,17 +80,45 @@ export default function CaseDetailPage() {
 
     const handlePostAnnotation = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!newAnnotation.trim() || submittingAnnotation) return
+        if ((!newAnnotation.trim() && !attachedFile) || submittingAnnotation) return
 
         setSubmittingAnnotation(true)
-        const res = await addCaseAnnotation(caseFile.id, newAnnotation)
-        if (res.success) {
+
+        try {
+            if (attachedFile) {
+                const formData = new FormData()
+                formData.append('file', attachedFile)
+                formData.append('caseFileId', caseFile.id)
+                if (actionType) formData.append('type', actionType)
+                if (newAnnotation.trim()) formData.append('annotationText', newAnnotation)
+                // Usando un nuevo server action para esto
+                const res = await uploadDocumentAndProcess(formData)
+                if (!res.success) {
+                    alert('Error subiendo documento: ' + res.error)
+                }
+            } else {
+                const res = await addCaseAnnotation(caseFile.id, newAnnotation, actionType)
+                if (!res.success) {
+                    alert('Error añadiendo anotación')
+                }
+            }
+            // Reset and reload
             setNewAnnotation("")
-            // Reload to get the new annotation
+            setActionType("")
+            setAttachedFile(null)
             const data = await getCaseFileById(caseFile.id)
             setCaseFile(data)
+        } catch (e) {
+            console.error(e)
         }
+
         setSubmittingAnnotation(false)
+    }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setAttachedFile(e.target.files[0])
+        }
     }
 
     if (loading) return null
@@ -211,24 +258,46 @@ export default function CaseDetailPage() {
                             {/* Input Actuación */}
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden focus-within:ring-2 focus-within:ring-[#0B1528]/20 transition-all">
                                 <form onSubmit={handlePostAnnotation}>
-                                    <div className="p-4 border-b border-gray-50">
-                                        <textarea
-                                            value={newAnnotation}
-                                            onChange={(e) => setNewAnnotation(e.target.value)}
-                                            placeholder="Registra una nueva actuación, trámite, correo enviado..."
-                                            className="w-full min-h-[90px] text-lg font-medium resize-none border-0 focus:ring-0 placeholder:text-gray-300 placeholder:font-normal text-gray-800"
-                                        />
+                                    <div className="p-4 border-b border-gray-50 flex items-start gap-3">
+                                        <div className="flex-1 space-y-3">
+                                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                                            {attachedFile && (
+                                                <div className="flex items-center gap-2 p-2 bg-blue-50/50 rounded border border-blue-100 text-blue-700 text-sm font-semibold inline-flex w-fit max-w-full">
+                                                    <FileIcon className="h-4 w-4 shrink-0" />
+                                                    <span className="truncate">{attachedFile.name}</span>
+                                                    <button type="button" onClick={() => setAttachedFile(null)} className="ml-2 text-blue-400 hover:text-blue-800"><X className="h-3 w-3" /></button>
+                                                </div>
+                                            )}
+                                            <textarea
+                                                value={newAnnotation}
+                                                onChange={(e) => setNewAnnotation(e.target.value)}
+                                                placeholder="Registra una nueva actuación, trámite, documento, etc..."
+                                                className="w-full min-h-[90px] text-lg font-medium resize-none border-0 focus:ring-0 placeholder:text-gray-300 placeholder:font-normal text-gray-800"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="bg-gray-50/50 px-4 py-3 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <Button type="button" variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full h-9 w-9">
+                                    <div className="bg-gray-50/50 px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
+                                        <div className="flex items-center gap-3 flex-1 min-w-[200px]">
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className={`${attachedFile ? 'text-blue-600 bg-blue-50' : 'text-gray-400'} hover:text-blue-600 hover:bg-blue-50 rounded-full h-9 w-9 shrink-0`} title="Adjuntar documento (IA)">
                                                 <Paperclip className="h-4 w-4" />
                                             </Button>
+                                            <select
+                                                value={actionType}
+                                                onChange={(e) => setActionType(e.target.value)}
+                                                className="h-9 px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B1528] focus:border-[#0B1528] cursor-pointer shadow-sm min-w-0 flex-1 truncate max-w-xs"
+                                            >
+                                                <option value="">Clasificación Opcional...</option>
+                                                {ACTION_GROUPS.map((group, i) => (
+                                                    <optgroup key={i} label={group.title}>
+                                                        {group.items.map(item => <option key={item} value={item}>{item}</option>)}
+                                                    </optgroup>
+                                                ))}
+                                            </select>
                                         </div>
                                         <Button
                                             type="submit"
-                                            disabled={!newAnnotation.trim() || submittingAnnotation}
-                                            className="bg-[#0B1528] hover:bg-slate-800 text-white font-bold rounded-full px-6 shadow-sm"
+                                            disabled={(!newAnnotation.trim() && !attachedFile) || submittingAnnotation}
+                                            className="bg-[#0B1528] hover:bg-slate-800 text-white font-bold rounded-full px-6 shadow-sm shrink-0"
                                         >
                                             {submittingAnnotation ? "Enviando..." : (
                                                 <><Send className="h-4 w-4 mr-2" /> Publicar Actuación</>
@@ -247,17 +316,32 @@ export default function CaseDetailPage() {
                                                 {note.author.name?.slice(0, 2).toUpperCase() || <Users className="h-5 w-5" />}
                                             </div>
                                             <div className="flex-1">
-                                                <div className="flex items-baseline justify-between mb-1.5">
+                                                <div className="flex items-baseline justify-between mb-1.5 flex-wrap gap-2">
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-extrabold text-[#0B1528] text-base">{note.author.name}</span>
+                                                        {note.type && (
+                                                            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[10px] font-bold uppercase tracking-widest hidden sm:inline-block">
+                                                                {note.type}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap bg-gray-50 px-2 py-1 rounded-md">
                                                         {new Date(note.createdAt).toLocaleString()}
                                                     </span>
                                                 </div>
-                                                <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed mt-3 font-medium">
+                                                {note.type && (
+                                                    <div className="mb-2 sm:hidden inline-block px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[10px] font-bold uppercase tracking-widest">
+                                                        {note.type}
+                                                    </div>
+                                                )}
+                                                <div className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed font-medium bg-gray-50 p-4 rounded-xl border border-gray-50">
                                                     {note.content}
-                                                </p>
+                                                </div>
+                                                {note.documentUrl && (
+                                                    <div className="mt-3 flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer w-fit" onClick={() => alert("Función de descarga en el gestor documental.")}>
+                                                        <FileIcon className="h-4 w-4" /> Consultar Documento Original Adjunto
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))

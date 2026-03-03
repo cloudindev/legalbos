@@ -13,6 +13,8 @@ model Tenant {
   name      String
   domain    String?    @unique
   createdAt DateTime   @default(now())
+  claudeApiKey String?
+  aiEnabled    Boolean    @default(false)
   auditLogs AuditLog[]
   caseFiles CaseFile[]
   clients   Client[]
@@ -94,6 +96,8 @@ model BankAccount {
 model Annotation {
   id        String   @id @default(uuid())
   content   String
+  type      String?
+  documentUrl String?
   isPinned  Boolean  @default(false)
   authorId  String
   clientId  String?
