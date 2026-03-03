@@ -16,19 +16,32 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                 password: {}
             },
             async authorize(credentials) {
-                const parsedCredentials = z
-                    .object({ email: z.string().email(), password: z.string().min(1) })
-                    .safeParse(credentials)
+                console.log("AUTH [credentials]: received login attempt");
+                try {
+                    const parsedCredentials = z
+                        .object({ email: z.string().email(), password: z.string().min(1) })
+                        .safeParse(credentials)
 
-                if (parsedCredentials.success) {
+                    if (!parsedCredentials.success) {
+                        console.log("AUTH [credentials]: zod validation failed", parsedCredentials.error.message);
+                        return null;
+                    }
+
                     const { email, password } = parsedCredentials.data
+                    console.log("AUTH [credentials]: validated email:", email);
+
                     const user = await prisma.user.findUnique({ where: { email } })
 
-                    if (!user) return null
+                    if (!user) {
+                        console.log("AUTH [credentials]: user not found in DB.");
+                        return null
+                    }
 
+                    console.log("AUTH [credentials]: user found.", user.id);
                     const passwordsMatch = await bcrypt.compare(password, user.passwordHash)
 
                     if (passwordsMatch) {
+                        console.log("AUTH [credentials]: password match successful.");
                         return {
                             id: user.id,
                             email: user.email,
@@ -36,7 +49,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                             tenantId: user.tenantId,
                             role: user.role
                         }
+                    } else {
+                        console.log("AUTH [credentials]: wrong password.");
                     }
+                } catch (e: any) {
+                    console.error("AUTH [credentials] DB FATAL ERROR:", e);
                 }
 
                 return null
