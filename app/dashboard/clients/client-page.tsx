@@ -71,9 +71,6 @@ export default function ClientsClientPage({ initialClients }: { initialClients: 
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Button variant="outline" className="font-bold border-gray-200">
-                    Filtrar por tipo
-                </Button>
             </div>
 
             {/* List */}
@@ -113,10 +110,7 @@ export default function ClientsClientPage({ initialClients }: { initialClients: 
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-lg bg-blue-50 text-[#0B1528] font-bold">
-                                                        {initials || <UserCircle2 className="h-5 w-5" />}
-                                                    </div>
-                                                    <div className="ml-4">
+                                                    <div>
                                                         <div className="text-sm font-bold text-gray-900 flex items-center gap-2">
                                                             {displayName}
                                                             {isCompany ? (
