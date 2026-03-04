@@ -1,7 +1,6 @@
 import { auth } from "@/auth"
 import { Input } from "@/components/ui/input"
-import { Bell, HelpCircle, Search } from "lucide-react"
-import Link from "next/link"
+import { Bell, Search } from "lucide-react"
 
 export default async function Topbar() {
     const session = await auth()
@@ -29,12 +28,6 @@ export default async function Topbar() {
                         <Bell className="h-5 w-5" />
                     </div>
                 </div>
-
-                <div className="h-6 w-px bg-gray-200" />
-
-                <Link href="/dashboard/settings" className="text-sm font-semibold text-gray-700 hover:text-[#0B1528] transition-colors">
-                    Ajustes del Despacho
-                </Link>
             </div>
         </header>
     )
