@@ -104,8 +104,9 @@ RESUMEN: [El resumen]`;
                 // Convert arrayBuffer to Base64
                 const base64Pdf = Buffer.from(fileBuffer).toString('base64');
 
-                const msg = await anthropic.messages.create({
-                    model: "claude-3-5-sonnet-20240620",
+                const msg = await anthropic.beta.messages.create({
+                    model: "claude-3-5-sonnet-20241022",
+                    betas: ["pdfs-2024-09-25"],
                     max_tokens: 1000,
                     messages: [
                         {
