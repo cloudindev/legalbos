@@ -106,11 +106,16 @@ export async function uploadDocumentAndProcess(formData: FormData) {
                 // Convert buffer to base64 for Gemini inlineData
                 const base64Data = Buffer.from(fileBuffer).toString('base64');
 
-                const prompt = `Analiza este documento legal y realiza dos cosas:
+                const prompt = `Analiza este documento legal y extrae la siguiente información:
 1. Clasifícalo ÚNICAMENTE en una de las siguientes categorías exactas: ${ALL_ACTIONS.map(a => `"${a}"`).join(", ")}.
-2. Haz un resumen del contenido en un párrafo de 5 a 9 líneas como máximo.
-Responde en este formato exacto:
+2. Identifica el Juzgado o Tribunal del que proviene el documento (ej. "JUZGADO DE LO CONTENCIOSO-ADMINISTRATIVO Nº 22 DE MADRID"). Si no se menciona ningún juzgado, indica "No especificado".
+3. Identifica el Texto del Procedimiento y su número (ej. "PROCEDIMIENTO: EJECUCIÓN DE TÍTULO JUDICIAL Nº xx/2021", "Procedimiento Abreviado 126/2016", "AUTOS: INCIDENTE..."). Si no hay, indica "No especificado".
+4. Haz un resumen del contenido en un párrafo de 5 a 9 líneas como máximo.
+
+Responde obligatoriamente en este formato exacto:
 CATEGORIA: [La categoría]
+JUZGADO: [El juzgado o tribunal]
+PROCEDIMIENTO: [El procedimiento y número]
 RESUMEN: [El resumen]`;
 
                 // Use gemini-flash-latest as it maps dynamically to the supported model endpoint under this key
@@ -128,6 +133,8 @@ RESUMEN: [El resumen]`;
 
                 const textOutput = result.response.text();
                 const catMatch = textOutput.match(/CATEGORIA:\s*(.+)/i)
+                const juzMatch = textOutput.match(/JUZGADO:\s*(.+)/i)
+                const proMatch = textOutput.match(/PROCEDIMIENTO:\s*(.+)/i)
                 const sumMatch = textOutput.match(/RESUMEN:\s*([\s\S]+)/i)
 
                 if (catMatch && catMatch[1]) {
@@ -138,7 +145,19 @@ RESUMEN: [El resumen]`;
                 }
 
                 if (sumMatch && sumMatch[1]) {
-                    finalContent = `✨ Resumen IA:\n${sumMatch[1].trim()}`
+                    let extractedData = "";
+                    if (juzMatch && juzMatch[1] && juzMatch[1].trim() !== "No especificado") {
+                        extractedData += `🏛️ **Juzgado:** ${juzMatch[1].trim()}\n`;
+                    }
+                    if (proMatch && proMatch[1] && proMatch[1].trim() !== "No especificado") {
+                        extractedData += `⚖️ **Procedimiento:** ${proMatch[1].trim()}\n`;
+                    }
+
+                    if (extractedData) {
+                        extractedData += "\n";
+                    }
+
+                    finalContent = `${extractedData}✨ **Resumen IA:**\n${sumMatch[1].trim()}`
                 }
 
             } catch (e: any) {
