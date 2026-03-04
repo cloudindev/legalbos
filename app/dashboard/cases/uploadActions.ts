@@ -106,8 +106,8 @@ Responde en este formato exacto:
 CATEGORIA: [La categoría]
 RESUMEN: [El resumen]`;
 
-                // Use gemini-1.5-flash as it is highly efficient for multimodality and PDF reading
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                // Use gemini-flash-latest as it maps dynamically to the supported model endpoint under this key
+                const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
                 const result = await model.generateContent([
                     prompt,
