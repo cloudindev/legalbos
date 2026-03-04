@@ -5,7 +5,9 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '20mb'
     }
-  }
+  },
+  output: "standalone",
+  serverExternalPackages: ["pdf-extraction"]
 };
 
 export default nextConfig;

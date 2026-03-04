@@ -94,37 +94,35 @@ export async function uploadDocumentAndProcess(formData: FormData) {
             try {
                 const anthropic = new Anthropic({ apiKey: tenant.claudeApiKey })
 
+                // Extract text avoiding DOM/browser modules by using pdf-extraction (a modernized canvas-free fork of pdf-parse)
+                // @ts-ignore
+                const pdfExtractionModule = await import('pdf-extraction');
+                const pdfExtractionFn = (pdfExtractionModule as any).default || pdfExtractionModule;
+
+                const pdfParseData = await (typeof pdfExtractionFn === 'function' ? pdfExtractionFn : pdfExtractionModule)(Buffer.from(fileBuffer));
+                const pdfText = pdfParseData.text || "";
+
+                // Limit text to roughly 40,000 characters
+                const truncatedText = pdfText.substring(0, 40000);
+
                 const prompt = `Analiza este documento legal y realiza dos cosas:
 1. Clasifícalo ÚNICAMENTE en una de las siguientes categorías exactas: ${ALL_ACTIONS.map(a => `"${a}"`).join(", ")}.
 2. Haz un resumen del contenido en un párrafo de 5 a 9 líneas como máximo.
 Responde en este formato exacto:
 CATEGORIA: [La categoría]
-RESUMEN: [El resumen]`;
+RESUMEN: [El resumen]
 
-                // Convert arrayBuffer to Base64
-                const base64Pdf = Buffer.from(fileBuffer).toString('base64');
+--- CONTENIDO DEL DOCUMENTO ---
+${truncatedText}
+--- FIN DEL DOCUMENTO ---`;
 
-                const msg = await anthropic.beta.messages.create({
-                    model: "claude-3-5-sonnet-20241022",
-                    betas: ["pdfs-2024-09-25"],
-                    max_tokens: 1000,
+                const msg = await anthropic.messages.create({
+                    model: "claude-3-5-sonnet-20240620",
+                    max_tokens: 500,
                     messages: [
                         {
                             role: "user",
-                            content: [
-                                {
-                                    type: "document",
-                                    source: {
-                                        type: "base64",
-                                        media_type: "application/pdf",
-                                        data: base64Pdf
-                                    }
-                                },
-                                {
-                                    type: "text",
-                                    text: prompt
-                                }
-                            ]
+                            content: prompt
                         }
                     ]
                 })
@@ -141,7 +139,7 @@ RESUMEN: [El resumen]`;
                 }
 
                 if (sumMatch && sumMatch[1]) {
-                    finalContent = `**Documento: ${file.name}**\n\nResumen IA:\n${sumMatch[1].trim()}`
+                    finalContent = `**Documento: ${file.name}**\n\nResumen IA: \n${sumMatch[1].trim()}`
                 }
 
             } catch (e: any) {
