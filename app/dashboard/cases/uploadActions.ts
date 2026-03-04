@@ -4,7 +4,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/db/prisma"
 import { createClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
-import Anthropic from "@anthropic-ai/sdk"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -90,44 +90,36 @@ export async function uploadDocumentAndProcess(formData: FormData) {
         let finalType = typeOverride || "Subida de documentos"
 
         // IA Procesamiento 
-        if (tenant.aiEnabled && tenant.claudeApiKey && file.type === "application/pdf") {
+        if (tenant.aiEnabled && file.type === "application/pdf") {
             try {
-                const anthropic = new Anthropic({ apiKey: tenant.claudeApiKey })
+                // Use user provided Gemini API Key or environment variable
+                const geminiApiKey = process.env.GEMINI_API_KEY || "AIzaSyAdXiPFtI00Duryf8bZF73v5cYsiq0MPWg"
+                const genAI = new GoogleGenerativeAI(geminiApiKey)
 
-                // Extract text avoiding DOM/browser modules by using pdf-extraction (a modernized canvas-free fork of pdf-parse)
-                // @ts-ignore
-                const pdfExtractionModule = await import('pdf-extraction');
-                const pdfExtractionFn = (pdfExtractionModule as any).default || pdfExtractionModule;
-
-                const pdfParseData = await (typeof pdfExtractionFn === 'function' ? pdfExtractionFn : pdfExtractionModule)(Buffer.from(fileBuffer));
-                const pdfText = pdfParseData.text || "";
-
-                // Limit text to roughly 40,000 characters
-                const truncatedText = pdfText.substring(0, 40000);
+                // Convert buffer to base64 for Gemini inlineData
+                const base64Data = Buffer.from(fileBuffer).toString('base64');
 
                 const prompt = `Analiza este documento legal y realiza dos cosas:
 1. Clasifícalo ÚNICAMENTE en una de las siguientes categorías exactas: ${ALL_ACTIONS.map(a => `"${a}"`).join(", ")}.
 2. Haz un resumen del contenido en un párrafo de 5 a 9 líneas como máximo.
 Responde en este formato exacto:
 CATEGORIA: [La categoría]
-RESUMEN: [El resumen]
+RESUMEN: [El resumen]`;
 
---- CONTENIDO DEL DOCUMENTO ---
-${truncatedText}
---- FIN DEL DOCUMENTO ---`;
+                // Use gemini-1.5-flash as it is highly efficient for multimodality and PDF reading
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-                const msg = await anthropic.messages.create({
-                    model: "claude-3-5-sonnet-20240620",
-                    max_tokens: 500,
-                    messages: [
-                        {
-                            role: "user",
-                            content: prompt
+                const result = await model.generateContent([
+                    prompt,
+                    {
+                        inlineData: {
+                            data: base64Data,
+                            mimeType: "application/pdf"
                         }
-                    ]
-                })
+                    }
+                ]);
 
-                const textOutput = msg.content[0].type === 'text' ? msg.content[0].text : ''
+                const textOutput = result.response.text();
                 const catMatch = textOutput.match(/CATEGORIA:\s*(.+)/i)
                 const sumMatch = textOutput.match(/RESUMEN:\s*([\s\S]+)/i)
 
@@ -143,7 +135,7 @@ ${truncatedText}
                 }
 
             } catch (e: any) {
-                console.error("Claude AI Error:", e)
+                console.error("Gemini AI Error:", e)
                 finalContent = `Archivo adjunto: ${file.name} (Error IA: ${e.message})`
             }
         }
