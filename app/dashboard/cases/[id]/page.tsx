@@ -143,7 +143,7 @@ export default function CaseDetailPage() {
     if (!caseFile) return <div className="p-8 text-center text-red-500 font-bold">Expediente no encontrado</div>
 
     const clientName = caseFile.client
-        ? (caseFile.client.type === 'COMPANY' ? caseFile.client.companyName : `${caseFile.client.firstName} ${caseFile.client.lastName || ''}`)
+        ? (caseFile.client?.type === 'COMPANY' ? caseFile.client?.companyName : `${caseFile.client?.firstName} ${caseFile.client?.lastName || ''}`)
         : "Sin Cliente"
 
     return (
