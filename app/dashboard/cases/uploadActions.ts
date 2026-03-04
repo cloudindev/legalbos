@@ -5,7 +5,6 @@ import prisma from "@/lib/db/prisma"
 import { createClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 import Anthropic from "@anthropic-ai/sdk"
-const pdfParse = require("pdf-parse")
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -102,8 +101,11 @@ export async function uploadDocumentAndProcess(formData: FormData) {
                     }
                 }
 
-                // Extract text from PDF using pdf-parse
-                const pdfParseData = await pdfParse(Buffer.from(fileBuffer))
+                // Dynamically import pdf-parse to avoid Next.js Server Action bundle/minification issues
+                const pdfParseModule = await import('pdf-parse')
+                const pdfParseFn = (pdfParseModule as any).default || pdfParseModule
+
+                const pdfParseData = await (typeof pdfParseFn === 'function' ? pdfParseFn : pdfParseModule)(Buffer.from(fileBuffer))
                 const pdfText = pdfParseData.text || ""
 
                 // Limit text to roughly 40,000 characters to prevent huge token costs while still capturing the essence of the document

@@ -331,12 +331,12 @@ export default function CaseDetailPage() {
                                     caseFile.annotations.map((note: any) => (
                                         <div key={note.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 p-6 flex gap-5 animate-in slide-in-from-bottom-2 duration-300">
                                             <div className="h-12 w-12 shrink-0 bg-blue-50 text-blue-700 rounded-full font-extrabold flex items-center justify-center shadow-inner border border-blue-100/50 text-lg">
-                                                {note.author.name?.slice(0, 2).toUpperCase() || <Users className="h-5 w-5" />}
+                                                {note.author?.name?.slice(0, 2).toUpperCase() || <Users className="h-5 w-5" />}
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-baseline justify-between mb-1.5 flex-wrap gap-2">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-extrabold text-[#0B1528] text-base">{note.author.name}</span>
+                                                        <span className="font-extrabold text-[#0B1528] text-base">{note.author?.name || "Usuario Eliminado"}</span>
                                                         {note.type && (
                                                             <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[10px] font-bold uppercase tracking-widest hidden sm:inline-block">
                                                                 {note.type}
