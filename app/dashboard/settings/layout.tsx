@@ -1,8 +1,13 @@
 import { ReactNode } from "react"
 import Link from "next/link"
-import { Building2, Users, CreditCard, Mail, MessageCircle } from "lucide-react"
+import { Building2, Users, CreditCard, Mail, MessageCircle, UserCircle2 } from "lucide-react"
 
 const sidebarNavItems = [
+    {
+        title: "Mis datos de usuario",
+        href: "/dashboard/settings/profile",
+        icon: UserCircle2,
+    },
     {
         title: "Datos fiscales",
         href: "/dashboard/settings",

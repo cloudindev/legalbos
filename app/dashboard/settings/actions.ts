@@ -14,12 +14,29 @@ export async function getTenantSettings() {
             id: true,
             name: true,
             claudeApiKey: true,
-            aiEnabled: true
+            aiEnabled: true,
+            fiscalType: true,
+            fiscalName: true,
+            taxId: true,
+            address: true,
+            city: true,
+            postalCode: true,
+            country: true
         }
     })
 }
 
-export async function updateAiSettings(data: { claudeApiKey: string | null; aiEnabled: boolean }) {
+export async function updateTenantSettings(data: {
+    claudeApiKey: string | null;
+    aiEnabled: boolean;
+    fiscalType: string;
+    fiscalName: string | null;
+    taxId: string | null;
+    address: string | null;
+    city: string | null;
+    postalCode: string | null;
+    country: string | null;
+}) {
     const session = await auth()
     if (!session?.user?.tenantId) throw new Error("No autorizado")
 
@@ -27,7 +44,14 @@ export async function updateAiSettings(data: { claudeApiKey: string | null; aiEn
         where: { id: session.user.tenantId },
         data: {
             claudeApiKey: data.claudeApiKey || null,
-            aiEnabled: data.aiEnabled
+            aiEnabled: data.aiEnabled,
+            fiscalType: data.fiscalType,
+            fiscalName: data.fiscalName || null,
+            taxId: data.taxId || null,
+            address: data.address || null,
+            city: data.city || null,
+            postalCode: data.postalCode || null,
+            country: data.country || null,
         }
     })
 

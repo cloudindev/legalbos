@@ -15,6 +15,15 @@ model Tenant {
   createdAt DateTime   @default(now())
   claudeApiKey String?
   aiEnabled    Boolean    @default(false)
+
+  // Datos fiscales
+  fiscalType   String     @default("COMPANY")
+  fiscalName   String?
+  taxId        String?
+  address      String?
+  city         String?
+  postalCode   String?
+  country      String?
   auditLogs AuditLog[]
   caseFiles CaseFile[]
   clients   Client[]
@@ -31,6 +40,9 @@ model User {
   email        String       @unique
   passwordHash String
   name         String
+  firstName    String?
+  lastName1    String?
+  lastName2    String?
   role         Role         @default(LAWYER)
   tenantId     String
   createdAt    DateTime     @default(now())
