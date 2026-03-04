@@ -45,125 +45,130 @@ export async function uploadDocumentAndProcess(formData: FormData) {
         return { success: false, error: "Faltan datos" }
     }
 
-    // Tenant info y settings IA
-    const tenant = await prisma.tenant.findUnique({
-        where: { id: session.user.tenantId }
-    }) as any
+    try {
+        // Tenant info y settings IA
+        const tenant = await prisma.tenant.findUnique({
+            where: { id: session.user.tenantId }
+        }) as any
 
-    if (!tenant) return { success: false, error: "Tenant no encontrado" }
+        if (!tenant) return { success: false, error: "Tenant no encontrado" }
 
-    // Upload a Supabase (Bucket: tenantId o único global. Usaremos uno global llamado 'documents' con path tenantId/...)
-    // Si queremos un bucket por tenant: `const bucket = tenant.id`
-    // Como Supabase tiene límites en la creación dinámica de buckets (max 100), es mejor un único bucket.
-    // Pero el usuario pidió: "cada tenant tendrá un bucket". Crearemos o usaremos el bucket "tenant-id".
+        // Upload a Supabase (Bucket: tenantId o único global. Usaremos uno global llamado 'documents' con path tenantId/...)
+        // Si queremos un bucket por tenant: `const bucket = tenant.id`
+        // Como Supabase tiene límites en la creación dinámica de buckets (max 100), es mejor un único bucket.
+        // Pero el usuario pidió: "cada tenant tendrá un bucket". Crearemos o usaremos el bucket "tenant-id".
 
-    const supabase = getSupabase()
-    if (!supabase) {
-        return { success: false, error: "Servicio de almacenamiento (Supabase) no configurado en el servidor." }
-    }
+        const supabase = getSupabase()
+        if (!supabase) {
+            return { success: false, error: "Servicio de almacenamiento (Supabase) no configurado en el servidor." }
+        }
 
-    // Check if bucket exists, if not create
-    const bucketName = `tenant-${tenant.id}`
-    const { data: buckets } = await supabase.storage.listBuckets()
-    if (!buckets?.find(b => b.name === bucketName)) {
-        await supabase.storage.createBucket(bucketName, { public: false })
-    }
+        // Check if bucket exists, if not create
+        const bucketName = `tenant-${tenant.id}`
+        const { data: buckets } = await supabase.storage.listBuckets()
+        if (!buckets?.find(b => b.name === bucketName)) {
+            await supabase.storage.createBucket(bucketName, { public: false })
+        }
 
-    const fileBuffer = await file.arrayBuffer()
-    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '')
-    const filePath = `cases/${caseFileId}/${Date.now()}-${safeName}`
+        const fileBuffer = await file.arrayBuffer()
+        const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '')
+        const filePath = `cases/${caseFileId}/${Date.now()}-${safeName}`
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, fileBuffer, { contentType: file.type })
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, fileBuffer, { contentType: file.type })
 
-    if (uploadError) {
-        console.error("Supabase error:", uploadError)
-        return { success: false, error: "Error subiendo archivo a Supabase" }
-    }
+        if (uploadError) {
+            console.error("Supabase error:", uploadError)
+            return { success: false, error: "Error subiendo archivo a Supabase" }
+        }
 
-    const { data: signedData } = await supabase.storage.from(bucketName).createSignedUrl(filePath, 3600)
-    const signedUrl = signedData?.signedUrl || ""
+        const { data: signedData } = await supabase.storage.from(bucketName).createSignedUrl(filePath, 3600)
+        const signedUrl = signedData?.signedUrl || ""
 
-    let finalContent = `Archivo introducido: ${file.name}`
-    let finalType = typeOverride || "Subida de documentos"
+        let finalContent = `Archivo introducido: ${file.name}`
+        let finalType = typeOverride || "Subida de documentos"
 
-    // IA Procesamiento 
-    if (tenant.aiEnabled && tenant.claudeApiKey && file.type === "application/pdf") {
-        try {
-            const anthropic = new Anthropic({ apiKey: tenant.claudeApiKey })
-            // Convert file to base64
-            const base64Data = Buffer.from(fileBuffer).toString('base64')
+        // IA Procesamiento 
+        if (tenant.aiEnabled && tenant.claudeApiKey && file.type === "application/pdf") {
+            try {
+                const anthropic = new Anthropic({ apiKey: tenant.claudeApiKey })
+                // Convert file to base64
+                const base64Data = Buffer.from(fileBuffer).toString('base64')
 
-            const prompt = `Analiza este documento y realiza dos cosas:
+                const prompt = `Analiza este documento y realiza dos cosas:
 1. Clasifícalo ÚNICAMENTE en una de las siguientes categorías exactas: ${ALL_ACTIONS.map(a => `"${a}"`).join(", ")}.
 2. Haz un resumen del contenido en un párrafo de 5 a 9 líneas como máximo.
 Responde en este formato exacto:
 CATEGORIA: [La categoría]
 RESUMEN: [El resumen]`
 
-            const msg = await anthropic.messages.create({
-                model: "claude-3-5-sonnet-20241022",
-                max_tokens: 500,
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            {
-                                type: "document",
-                                source: { type: "base64", media_type: "application/pdf", data: base64Data }
-                            },
-                            { type: "text", text: prompt }
-                        ]
+                const msg = await anthropic.messages.create({
+                    model: "claude-3-5-sonnet-20241022",
+                    max_tokens: 500,
+                    messages: [
+                        {
+                            role: "user",
+                            content: [
+                                {
+                                    type: "document",
+                                    source: { type: "base64", media_type: "application/pdf", data: base64Data }
+                                },
+                                { type: "text", text: prompt }
+                            ]
+                        }
+                    ]
+                })
+
+                const textOutput = msg.content[0].type === 'text' ? msg.content[0].text : ''
+                const catMatch = textOutput.match(/CATEGORIA:\s*(.+)/i)
+                const sumMatch = textOutput.match(/RESUMEN:\s*([\s\S]+)/i)
+
+                if (catMatch && catMatch[1]) {
+                    const foundType = catMatch[1].trim()
+                    if (ALL_ACTIONS.includes(foundType)) {
+                        finalType = foundType
                     }
-                ]
-            })
-
-            const textOutput = msg.content[0].type === 'text' ? msg.content[0].text : ''
-            const catMatch = textOutput.match(/CATEGORIA:\s*(.+)/i)
-            const sumMatch = textOutput.match(/RESUMEN:\s*([\s\S]+)/i)
-
-            if (catMatch && catMatch[1]) {
-                const foundType = catMatch[1].trim()
-                if (ALL_ACTIONS.includes(foundType)) {
-                    finalType = foundType
                 }
+
+                if (sumMatch && sumMatch[1]) {
+                    finalContent = `**Documento: ${file.name}**\n\nResumen IA:\n${sumMatch[1].trim()}`
+                }
+
+            } catch (e: any) {
+                console.error("Claude AI Error:", e)
+                finalContent = `Archivo adjunto: ${file.name} (Error IA: ${e.message})`
             }
+        }
 
-            if (sumMatch && sumMatch[1]) {
-                finalContent = `**Documento: ${file.name}**\n\nResumen IA:\n${sumMatch[1].trim()}`
+        // Save annotation and document record
+        const doc = await prisma.document.create({
+            data: {
+                name: file.name,
+                url: filePath,
+                size: file.size,
+                mimetype: file.type,
+                tenantId: tenant.id,
+                caseFileId: caseFileId
             }
+        })
 
-        } catch (e: any) {
-            console.error("Claude AI Error:", e)
-            finalContent = `Archivo adjunto: ${file.name} (Error IA: ${e.message})`
+        const annData: any = {
+            content: finalContent,
+            type: finalType,
+            caseFileId,
+            authorId: session.user.id,
+            documentUrl: filePath
         }
+
+        await prisma.annotation.create({
+            data: annData
+        })
+
+        revalidatePath(`/dashboard/cases/${caseFileId}`)
+        return { success: true }
+    } catch (globalE: any) {
+        console.error("Critical Upload Error:", globalE)
+        return { success: false, error: "Server Exception: " + globalE.message }
     }
-
-    // Save annotation and document record
-    const doc = await prisma.document.create({
-        data: {
-            name: file.name,
-            url: filePath,
-            size: file.size,
-            mimetype: file.type,
-            tenantId: tenant.id,
-            caseFileId: caseFileId
-        }
-    })
-
-    const annData: any = {
-        content: finalContent,
-        type: finalType,
-        caseFileId,
-        authorId: session.user.id,
-        documentUrl: filePath
-    }
-
-    await prisma.annotation.create({
-        data: annData
-    })
-
-    revalidatePath(`/dashboard/cases/${caseFileId}`)
-    return { success: true }
 }
