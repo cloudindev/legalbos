@@ -101,11 +101,10 @@ export async function uploadDocumentAndProcess(formData: FormData) {
                     }
                 }
 
-                // Dynamically import pdf-parse to avoid Next.js Server Action bundle/minification issues
-                const pdfParseModule = await import('pdf-parse')
-                const pdfParseFn = (pdfParseModule as any).default || pdfParseModule
+                // Use eval to completely bypass Next.js / Turbopack bundler which breaks pdf-parse's internals
+                const pdfParse = eval('require("pdf-parse")')
 
-                const pdfParseData = await (typeof pdfParseFn === 'function' ? pdfParseFn : pdfParseModule)(Buffer.from(fileBuffer))
+                const pdfParseData = await pdfParse(Buffer.from(fileBuffer))
                 const pdfText = pdfParseData.text || ""
 
                 // Limit text to roughly 40,000 characters to prevent huge token costs while still capturing the essence of the document
