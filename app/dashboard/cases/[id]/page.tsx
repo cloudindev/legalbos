@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { getCaseFileById, updateCaseFile, getCasePhases, addCaseAnnotation } from "../actions"
-import { uploadDocumentAndProcess } from "../uploadActions"
-import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check, FileIcon, Trash2 } from "lucide-react"
+import { uploadDocumentAndProcess, getSignedDocumentUrl } from "../uploadActions"
+import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check, FileIcon, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -40,6 +40,25 @@ export default function CaseDetailPage() {
     const [actionType, setActionType] = useState("")
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const [openingDoc, setOpeningDoc] = useState<string | null>(null)
+
+    const handleOpenDocument = async (url: string) => {
+        if (openingDoc === url) return;
+        setOpeningDoc(url);
+        try {
+            const res = await getSignedDocumentUrl(url);
+            if (res.success && res.url) {
+                window.open(res.url, '_blank');
+            } else {
+                alert("No se pudo abrir el documento: " + res.error);
+            }
+        } catch (error) {
+            console.error("Error opening document", error);
+            alert("Error al abrir documento");
+        } finally {
+            setOpeningDoc(null);
+        }
+    }
 
     useEffect(() => {
         async function load() {
@@ -364,11 +383,15 @@ export default function CaseDetailPage() {
                                                     </div>
                                                 )}
                                                 <div className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed font-medium bg-gray-50 p-4 rounded-xl border border-gray-50">
-                                                    {note.content}
+                                                    {note.content.replace(/\*\*?Documento:.*?\*\*?\n*/g, '').replace('Resumen IA:', '✨ Resumen IA:')}
                                                 </div>
                                                 {note.documentUrl && (
-                                                    <div className="mt-3 flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer w-fit" onClick={() => alert("Función de descarga en el gestor documental.")}>
-                                                        <FileIcon className="h-4 w-4" /> Consultar Documento Original Adjunto
+                                                    <div
+                                                        className={`mt-3 flex items-center gap-2 text-sm font-bold transition-colors w-fit ${openingDoc === note.documentUrl ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
+                                                        onClick={() => { if (openingDoc !== note.documentUrl) handleOpenDocument(note.documentUrl) }}
+                                                    >
+                                                        {openingDoc === note.documentUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileIcon className="h-4 w-4" />}
+                                                        {openingDoc === note.documentUrl ? "Abriendo..." : "Consultar documento"}
                                                     </div>
                                                 )}
                                             </div>

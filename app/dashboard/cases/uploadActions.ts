@@ -131,7 +131,7 @@ RESUMEN: [El resumen]`;
                 }
 
                 if (sumMatch && sumMatch[1]) {
-                    finalContent = `**Documento: ${file.name}**\n\nResumen IA: \n${sumMatch[1].trim()}`
+                    finalContent = `✨ Resumen IA:\n${sumMatch[1].trim()}`
                 }
 
             } catch (e: any) {
@@ -170,4 +170,21 @@ RESUMEN: [El resumen]`;
         console.error("Critical Upload Error:", globalE)
         return { success: false, error: "Server Exception: " + globalE.message }
     }
+}
+
+export async function getSignedDocumentUrl(filePath: string) {
+    const session = await auth()
+    if (!session?.user?.tenantId) return { success: false, error: "No autorizado" }
+
+    const supabase = getSupabase()
+    if (!supabase) return { success: false, error: "Servicio de almacenamiento no configurado" }
+
+    const bucketName = `tenant-${session.user.tenantId}`
+    const { data: signedData, error } = await supabase.storage.from(bucketName).createSignedUrl(filePath, 3600)
+
+    if (error || !signedData?.signedUrl) {
+        return { success: false, error: "No se pudo obtener el documento" }
+    }
+
+    return { success: true, url: signedData.signedUrl }
 }
