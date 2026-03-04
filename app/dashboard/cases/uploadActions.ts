@@ -93,29 +93,31 @@ export async function uploadDocumentAndProcess(formData: FormData) {
         if (tenant.aiEnabled && tenant.claudeApiKey && file.type === "application/pdf") {
             try {
                 const anthropic = new Anthropic({ apiKey: tenant.claudeApiKey })
-                // Convert file to base64
-                const base64Data = Buffer.from(fileBuffer).toString('base64')
+                // Extract text from PDF using pdf-parse
+                const pdfParseData = await require('pdf-parse')(Buffer.from(fileBuffer))
+                const pdfText = pdfParseData.text || ""
 
-                const prompt = `Analiza este documento y realiza dos cosas:
+                // Limit text to roughly 40,000 characters to prevent huge token costs while still capturing the essence of the document
+                const truncatedText = pdfText.substring(0, 40000)
+
+                const prompt = `Analiza el siguiente documento legal y realiza dos cosas:
 1. Clasifícalo ÚNICAMENTE en una de las siguientes categorías exactas: ${ALL_ACTIONS.map(a => `"${a}"`).join(", ")}.
 2. Haz un resumen del contenido en un párrafo de 5 a 9 líneas como máximo.
 Responde en este formato exacto:
 CATEGORIA: [La categoría]
-RESUMEN: [El resumen]`
+RESUMEN: [El resumen]
+
+--- CONTENIDO DEL DOCUMENTO ---
+${truncatedText}
+--- FIN DEL DOCUMENTO ---`
 
                 const msg = await anthropic.messages.create({
-                    model: "claude-3-5-sonnet-20241022",
+                    model: "claude-3-5-sonnet-20240620",
                     max_tokens: 500,
                     messages: [
                         {
                             role: "user",
-                            content: [
-                                {
-                                    type: "document",
-                                    source: { type: "base64", media_type: "application/pdf", data: base64Data }
-                                },
-                                { type: "text", text: prompt }
-                            ]
+                            content: prompt
                         }
                     ]
                 })
