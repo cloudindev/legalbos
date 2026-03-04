@@ -94,27 +94,12 @@ export async function uploadDocumentAndProcess(formData: FormData) {
             try {
                 const anthropic = new Anthropic({ apiKey: tenant.claudeApiKey })
 
-                // Use pdfjs-dist directly for reliable Node.js PDF parsing without DOM dependencies
-                // Require the older standardized legacy build which brings its own polyfills for Node environments
-                const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+                // Dynamically import pdf-parse to be evaluated at runtime, relying on serverExternalPackages to keep it unbundled
+                const pdfParseModule = await import('pdf-parse');
+                const pdfParseFn = (pdfParseModule as any).default || pdfParseModule;
 
-                // Disable workers to run synchronously in the Node execution thread (vital for Server Actions)
-                pdfjsLib.GlobalWorkerOptions.workerSrc = false;
-
-                // Load the document safely from the buffer array
-                const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(fileBuffer) });
-                const pdfDocument = await loadingTask.promise;
-
-                let pdfText = "";
-                const numPages = pdfDocument.numPages;
-                const maxPagesToProcess = Math.min(numPages, 10); // Analyze up to 10 pages to avoid timeout
-
-                for (let i = 1; i <= maxPagesToProcess; i++) {
-                    const page = await pdfDocument.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map((item: any) => item.str).join(" ");
-                    pdfText += pageText + "\n";
-                }
+                const pdfParseData = await (typeof pdfParseFn === 'function' ? pdfParseFn : pdfParseModule)(Buffer.from(fileBuffer));
+                const pdfText = pdfParseData.text || "";
 
                 // Limit text to roughly 40,000 characters to prevent huge token costs while still capturing the essence of the document
                 const truncatedText = pdfText.substring(0, 40000)
