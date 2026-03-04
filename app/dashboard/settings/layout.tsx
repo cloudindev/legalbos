@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 import Link from "next/link"
-import { Building2, Users, CreditCard, Mail, MessageCircle, UserCircle2 } from "lucide-react"
+import { Building2, Users, CreditCard, Mail, MessageCircle, UserCircle2, Sparkles } from "lucide-react"
 
 const sidebarNavItems = [
     {
@@ -17,6 +17,11 @@ const sidebarNavItems = [
         title: "Usuarios",
         href: "/dashboard/settings/users",
         icon: Users,
+    },
+    {
+        title: "Inteligencia Artificial",
+        href: "/dashboard/settings/ai",
+        icon: Sparkles,
     },
     {
         title: "Suscripción",
