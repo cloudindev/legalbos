@@ -382,9 +382,54 @@ export default function CaseDetailPage() {
                                                         {note.type}
                                                     </div>
                                                 )}
-                                                <div className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed font-medium bg-gray-50 p-4 rounded-xl border border-gray-50">
-                                                    {note.content.replace(/\*\*?Documento:.*?\*\*?\n*/g, '').replace('Resumen IA:', '✨ Resumen IA:')}
-                                                </div>
+                                                {(() => {
+                                                    // Parse legacy strings & new Gemini extraction markdown format
+                                                    const cleanContent = note.content.replace(/\*\*?Documento:.*?\*\*?\n*/g, '').replace('Resumen IA:', '✨ Resumen IA:');
+                                                    const lines = cleanContent.split('\n');
+                                                    const metadataLines = [];
+                                                    const summaryLines = [];
+                                                    let isSummary = false;
+
+                                                    for (const line of lines) {
+                                                        if (line.includes('✨') && line.includes('Resumen IA')) {
+                                                            isSummary = true;
+                                                            summaryLines.push(line.replace(/\*\*/g, '')); // Strip ** from summary header
+                                                        } else if (isSummary) {
+                                                            summaryLines.push(line);
+                                                        } else if (line.trim()) {
+                                                            // It's a metadata line (Juzgado / Procedimiento)
+                                                            metadataLines.push(line);
+                                                        }
+                                                    }
+
+                                                    return (
+                                                        <>
+                                                            {metadataLines.length > 0 && (
+                                                                <div className="mb-4 space-y-1.5 px-1">
+                                                                    {metadataLines.map((ml, idx) => {
+                                                                        // Parse: 🏛️ **Juzgado:** Texto -> 🏛️ <span class="font-bold">Juzgado:</span> Texto
+                                                                        const match = ml.match(/^(.*?)\*\*([^*]+)\*\*(.*)$/);
+                                                                        if (match) {
+                                                                            return (
+                                                                                <div key={idx} className="text-gray-800 text-sm flex items-start gap-2">
+                                                                                    <span>{match[1].trim()}</span>
+                                                                                    <span className="font-extrabold text-[#0B1528]">{match[2].trim()}</span>
+                                                                                    <span className="font-medium text-gray-600">{match[3].trim()}</span>
+                                                                                </div>
+                                                                            )
+                                                                        }
+                                                                        return <div key={idx} className="text-sm font-medium text-gray-700">{ml}</div>
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                            {summaryLines.length > 0 && (
+                                                                <div className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed font-medium bg-gray-50 p-4 rounded-xl border border-gray-50">
+                                                                    {summaryLines.join('\n')}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )
+                                                })()}
                                                 {note.documentUrl && (
                                                     <div
                                                         className={`mt-3 flex items-center gap-2 text-sm font-bold transition-colors w-fit ${openingDoc === note.documentUrl ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
