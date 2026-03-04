@@ -23,6 +23,7 @@ model Tenant {
   address      String?
   city         String?
   postalCode   String?
+  province     String?
   country      String?
   auditLogs AuditLog[]
   caseFiles CaseFile[]

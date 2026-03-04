@@ -5,6 +5,7 @@ import { getTenantSettings, updateTenantSettings } from "./actions"
 import { Settings, Save, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ProvinceSelect } from "../clients/new/province-select"
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<any>(null)
@@ -18,7 +19,8 @@ export default function SettingsPage() {
     const [address, setAddress] = useState("")
     const [city, setCity] = useState("")
     const [postalCode, setPostalCode] = useState("")
-    const [country, setCountry] = useState("")
+    const [province, setProvince] = useState("")
+    const [country, setCountry] = useState("España")
 
     useEffect(() => {
         async function load() {
@@ -31,7 +33,8 @@ export default function SettingsPage() {
                 setAddress(data.address || "")
                 setCity(data.city || "")
                 setPostalCode(data.postalCode || "")
-                setCountry(data.country || "")
+                setProvince(data.province || "")
+                setCountry(data.country || "España")
             }
             setLoading(false)
         }
@@ -49,6 +52,7 @@ export default function SettingsPage() {
             address,
             city,
             postalCode,
+            province,
             country
         })
         setSaving(false)
@@ -111,14 +115,18 @@ export default function SettingsPage() {
                                 <Input value={address} onChange={e => setAddress(e.target.value)} />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Código Postal</label>
+                                    <Input value={postalCode} onChange={e => setPostalCode(e.target.value)} />
+                                </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Ciudad</label>
                                     <Input value={city} onChange={e => setCity(e.target.value)} />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Código Postal</label>
-                                    <Input value={postalCode} onChange={e => setPostalCode(e.target.value)} />
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Provincia</label>
+                                    <ProvinceSelect value={province} onChange={setProvince} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">País</label>

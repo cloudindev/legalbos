@@ -21,6 +21,7 @@ export async function getTenantSettings() {
             address: true,
             city: true,
             postalCode: true,
+            province: true,
             country: true
         }
     })
@@ -35,6 +36,7 @@ export async function updateTenantSettings(data: {
     address: string | null;
     city: string | null;
     postalCode: string | null;
+    province: string | null;
     country: string | null;
 }) {
     const session = await auth()
@@ -51,6 +53,7 @@ export async function updateTenantSettings(data: {
             address: data.address || null,
             city: data.city || null,
             postalCode: data.postalCode || null,
+            province: data.province || null,
             country: data.country || null,
         }
     })
