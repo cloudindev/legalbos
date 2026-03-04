@@ -39,8 +39,8 @@ export default function LandingPage() {
           <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-6">
             Legaltech de nueva generación
           </span>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-[#0B1528] max-w-4xl mb-6">
-            El CRM definitivo para abogados y procuradores
+          <h1 className="text-5xl md:text-[66px] leading-[1.1] font-extrabold tracking-tight text-[#0B1528] max-w-5xl mb-6">
+            El CRM definitivo <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-[#0B1528] to-blue-400 bg-[length:200%_auto] animate-text-gradient">con IA</span><br className="hidden md:block" /> para abogados y procuradores
           </h1>
           <p className="text-lg md:text-xl text-gray-500 max-w-2xl mb-10 font-medium">
             Gestiona tus casos, clientes y todas las comunicaciones en un solo lugar con Legalbos. Potencia la eficiencia de tu despacho desde el primer día.
