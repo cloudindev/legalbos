@@ -45,15 +45,12 @@ export default function LandingPage() {
           <p className="text-lg md:text-xl text-gray-500 max-w-2xl mb-10 font-medium">
             Gestiona tus casos, clientes y todas las comunicaciones en un solo lugar con Legalbos. Potencia la eficiencia de tu despacho desde el primer día.
           </p>
-          <div className="flex items-center gap-4 mb-16">
+          <div className="flex items-center justify-center mb-16 w-full px-6">
             <Link href="/register">
-              <Button size="lg" className="bg-[#0B1528] hover:bg-slate-800 text-white font-bold h-14 px-8 rounded-full text-lg">
+              <Button size="lg" className="bg-[#0B1528] hover:bg-slate-800 text-white font-bold h-14 px-16 rounded-full text-lg shadow-sm hover:shadow-md transition-all sm:w-auto min-w-[240px]">
                 Empezar ahora
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="border-2 border-gray-200 text-gray-700 font-bold h-14 px-8 rounded-full text-lg hover:bg-gray-50">
-              Saber más
-            </Button>
           </div>
 
           {/* Trust block */}
