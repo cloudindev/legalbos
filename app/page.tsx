@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Scale, CheckCircle2 } from "lucide-react"
+import { Scale, CheckCircle2, Users, FolderOpen, Sparkles, CalendarDays, Files, Briefcase, PhoneCall, MessageCircle, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -73,52 +73,146 @@ export default function LandingPage() {
             <div className="mb-16">
               <h2 className="text-3xl md:text-4xl font-extrabold text-[#0B1528] mb-4">Todo lo que tu despacho necesita</h2>
               <p className="text-gray-500 font-medium text-lg max-w-2xl">
-                Nuestra plataforma está diseñada para optimizar cada proceso legal, permitiéndote centrarte en lo que realmente importa: tus clientes.
+                Nuestra plataforma está diseñada para optimizar cada proceso legal, permitiéndote centrarte en lo que realmente importa: tus clientes y optimizar tus procesos.
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              <Card className="border-none shadow-sm shadow-gray-100 p-2">
-                <CardHeader>
-                  <div className="h-12 w-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
-                    <Scale className="h-6 w-6" />
-                  </div>
-                  <CardTitle className="text-xl font-bold">Gestión de Casos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base text-gray-500 font-medium">
-                    Organiza todos tus expedientes de forma digital y segura. Accede a la documentación desde cualquier dispositivo.
-                  </CardDescription>
-                </CardContent>
-              </Card>
-
-              <Card className="border-none shadow-sm shadow-gray-100 p-2">
+              {/* Feature 1 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
                 <CardHeader>
                   <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <Users className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-xl font-bold">Facturación Automatizada</CardTitle>
+                  <CardTitle className="text-xl font-bold">Gestión de clientes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base text-gray-500 font-medium">
-                    Genera facturas, gestiona minutas y controla pagos de manera sencilla y automatizada.
+                    Fideliza y organiza toda la información y comunicaciones centralizada en perfiles ricos.
                   </CardDescription>
                 </CardContent>
               </Card>
 
-              <Card className="border-none shadow-sm shadow-gray-100 p-2">
+              {/* Feature 2 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
                 <CardHeader>
-                  <div className="h-12 w-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <div className="h-12 w-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
+                    <FolderOpen className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-xl font-bold">Calendario Judicial</CardTitle>
+                  <CardTitle className="text-xl font-bold">Gestión de expedientes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base text-gray-500 font-medium">
-                    Sincroniza tus vistas, plazos procesales y recordatorios automáticamente con LexNet y agendas externas.
+                    Control absoluto de las fases, partes contrarias, abogados, procuradores y minutas de cada caso.
                   </CardDescription>
                 </CardContent>
               </Card>
+
+              {/* Feature 3 */}
+              <Card className="border border-purple-100 bg-purple-50/20 shadow-sm p-2 hover:-translate-y-1 transition-transform">
+                <CardHeader>
+                  <div className="h-12 w-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold">IA integrada</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-gray-600 font-medium">
+                    Sube tus documentos y deja que la Inteligencia artificial haga el trabajo por ti extrayendo y automatizando todo.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Feature 4 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
+                <CardHeader>
+                  <div className="h-12 w-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4">
+                    <CalendarDays className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold">Agenda</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-gray-500 font-medium">
+                    Vencimientos, juicios, señalamientos y recordatorios organizados con alertas.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Feature 5 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
+                <CardHeader>
+                  <div className="h-12 w-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-4">
+                    <Files className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold">Gestor documental</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-gray-500 font-medium">
+                    Almacenamiento ilimitado en la nube con búsqueda inteligente y compartición segura.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Feature 6 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
+                <CardHeader>
+                  <div className="h-12 w-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mb-4">
+                    <Briefcase className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold">Actuaciones y trabajos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-gray-500 font-medium">
+                    Timetracking en tiempo real de todo lo que realiza el despacho para poder facturarlo posteriormente.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Feature 7 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
+                <CardHeader>
+                  <div className="h-12 w-12 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center mb-4">
+                    <PhoneCall className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold">Integración Telefónica</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-gray-500 font-medium">
+                    Centralita conectada. Informes de llamadas en tiempo real y grabación inteligente.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Feature 8 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
+                <CardHeader>
+                  <div className="h-12 w-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-4">
+                    <MessageCircle className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold">WhatsApp</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-gray-500 font-medium">
+                    Contacta directamente con el móvil de los clientes o recibe mensajes en tu buzón procesal.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Feature 9 */}
+              <Card className="border-none shadow-sm shadow-gray-100 p-2 hover:-translate-y-1 transition-transform">
+                <CardHeader>
+                  <div className="h-12 w-12 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center mb-4">
+                    <Mail className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold">Integración Correo electrónico</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base text-gray-500 font-medium">
+                    Sincronización total con tu correo habitual. Indexa cada correspondencia con su expediente fácilmente.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
             </div>
           </div>
         </section>
