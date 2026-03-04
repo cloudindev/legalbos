@@ -4,9 +4,12 @@ import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { getCaseFileById, updateCaseFile, getCasePhases, addCaseAnnotation } from "../actions"
 import { uploadDocumentAndProcess, getSignedDocumentUrl } from "../uploadActions"
-import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check, FileIcon, Trash2, Loader2 } from "lucide-react"
+import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check, FileIcon, Trash2, Loader2, ChevronsUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 export const ACTION_GROUPS = [
     { title: "Actuaciones de apertura y alta", items: ["Apertura del expediente", "Alta de cliente", "Alta de parte contraria", "Asignación de abogado responsable", "Alta de procurador", "Clasificación del tipo de asunto", "Carga de documentación inicial", "Firma de hoja de encargo"] },
@@ -41,6 +44,7 @@ export default function CaseDetailPage() {
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [openingDoc, setOpeningDoc] = useState<string | null>(null)
+    const [comboboxOpen, setComboboxOpen] = useState(false)
 
     const handleOpenDocument = async (url: string) => {
         if (openingDoc === url) return;
@@ -318,18 +322,50 @@ export default function CaseDetailPage() {
                                             <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className={`${attachedFile ? 'text-blue-600 bg-blue-50' : 'text-gray-400'} hover:text-blue-600 hover:bg-blue-50 rounded-full h-9 w-9 shrink-0`} title="Adjuntar documento (IA)">
                                                 <Paperclip className="h-4 w-4" />
                                             </Button>
-                                            <select
-                                                value={actionType}
-                                                onChange={(e) => setActionType(e.target.value)}
-                                                className="h-9 px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B1528] focus:border-[#0B1528] cursor-pointer shadow-sm min-w-0 flex-1 truncate max-w-xs"
-                                            >
-                                                <option value="">Clasificación Opcional...</option>
-                                                {ACTION_GROUPS.map((group, i) => (
-                                                    <optgroup key={i} label={group.title}>
-                                                        {group.items.map(item => <option key={item} value={item}>{item}</option>)}
-                                                    </optgroup>
-                                                ))}
-                                            </select>
+                                            <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={comboboxOpen}
+                                                        className="h-9 px-3 w-[260px] justify-between bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-[#0B1528]"
+                                                    >
+                                                        {actionType ? actionType : "Clasificación Opcional..."}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[300px] p-0" align="start">
+                                                    <Command>
+                                                        <CommandInput placeholder="Buscar clasificación..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>No se encontraron resultados.</CommandEmpty>
+                                                            {ACTION_GROUPS.map((group, i) => (
+                                                                <CommandGroup key={i} heading={group.title}>
+                                                                    {group.items.map(item => (
+                                                                        <CommandItem
+                                                                            key={item}
+                                                                            value={item}
+                                                                            onSelect={(currentValue) => {
+                                                                                setActionType(item === actionType ? "" : item)
+                                                                                setComboboxOpen(false)
+                                                                            }}
+                                                                            className="cursor-pointer"
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "mr-2 h-4 w-4",
+                                                                                    actionType === item ? "opacity-100" : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                            {item}
+                                                                        </CommandItem>
+                                                                    ))}
+                                                                </CommandGroup>
+                                                            ))}
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
                                         </div>
                                         <Button
                                             type="submit"
@@ -337,7 +373,7 @@ export default function CaseDetailPage() {
                                             className="bg-[#0B1528] hover:bg-slate-800 text-white font-bold rounded-full px-6 shadow-sm shrink-0"
                                         >
                                             {submittingAnnotation ? "Enviando..." : (
-                                                <><Send className="h-4 w-4 mr-2" /> Publicar Actuación</>
+                                                <><Send className="h-4 w-4 mr-2" /> Publicar actuación</>
                                             )}
                                         </Button>
                                     </div>
