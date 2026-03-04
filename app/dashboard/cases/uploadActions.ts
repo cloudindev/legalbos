@@ -93,7 +93,9 @@ export async function uploadDocumentAndProcess(formData: FormData) {
         if (tenant.aiEnabled && file.type === "application/pdf") {
             try {
                 // Use user provided Gemini API Key or environment variable from Vercel config
-                const geminiApiKey = process.env.GEMINI_API_KEY || tenant.claudeApiKey || ""
+                // We strongly sanitize it to avoid trailing/hidden spaces from copy-pasting
+                const rawKey = process.env.GEMINI_API_KEY || tenant.claudeApiKey || ""
+                const geminiApiKey = rawKey.trim().replace(/[\r\n\t]/g, '')
 
                 if (!geminiApiKey) {
                     throw new Error("No hay API Key de Gemini/Claude configurada.")
