@@ -78,7 +78,7 @@ export default function SettingsUsersPage() {
                             <DialogTitle className="text-xl font-bold text-[#0B1528]">Añadir Nuevo Usuario</DialogTitle>
                         </DialogHeader>
 
-                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                        <form onSubmit={handleSubmit} className="space-y-4 mt-4" autoComplete="off">
                             {error && <div className="text-red-600 text-sm font-bold bg-red-50 p-3 rounded-lg">{error}</div>}
 
                             <div className="space-y-2">
@@ -104,7 +104,7 @@ export default function SettingsUsersPage() {
 
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-gray-700">Contraseña temporal</label>
-                                <Input type="password" required value={formData.passwordRaw} onChange={e => setFormData({ ...formData, passwordRaw: e.target.value })} />
+                                <Input type="password" required value={formData.passwordRaw} onChange={e => setFormData({ ...formData, passwordRaw: e.target.value })} autoComplete="new-password" data-lpignore="true" />
                             </div>
 
                             <Button type="submit" disabled={saving} className="w-full bg-[#0B1528] hover:bg-slate-800 text-white font-bold h-11 rounded-full mt-4">

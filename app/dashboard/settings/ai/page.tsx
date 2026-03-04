@@ -51,7 +51,7 @@ export default function SettingsAIPage() {
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <form onSubmit={handleSave} className="space-y-8">
+                <form onSubmit={handleSave} className="space-y-8" autoComplete="off">
                     <div className="space-y-6">
                         <p className="text-sm text-gray-500 font-medium">
                             Configura tu API Key (Gemini / Claude) para habilitar el análisis y extracción automática de datos en documentos subidos.
@@ -68,6 +68,8 @@ export default function SettingsAIPage() {
                                     onChange={(e) => setClaudeApiKey(e.target.value)}
                                     placeholder="AIzaSyA..."
                                     className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#0B1528] focus:border-[#0B1528] transition-all font-mono"
+                                    autoComplete="new-password"
+                                    data-lpignore="true"
                                 />
                             </div>
 
