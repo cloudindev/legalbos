@@ -92,8 +92,13 @@ export async function uploadDocumentAndProcess(formData: FormData) {
         // IA Procesamiento 
         if (tenant.aiEnabled && file.type === "application/pdf") {
             try {
-                // Use user provided Gemini API Key or environment variable
-                const geminiApiKey = process.env.GEMINI_API_KEY || "AIzaSyAdXiPFtI00Duryf8bZF73v5cYsiq0MPWg"
+                // Use user provided Gemini API Key or environment variable from Vercel config
+                const geminiApiKey = process.env.GEMINI_API_KEY || tenant.claudeApiKey || ""
+
+                if (!geminiApiKey) {
+                    throw new Error("No hay API Key de Gemini/Claude configurada.")
+                }
+
                 const genAI = new GoogleGenerativeAI(geminiApiKey)
 
                 // Convert buffer to base64 for Gemini inlineData
