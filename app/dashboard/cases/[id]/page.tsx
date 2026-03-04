@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { getCaseFileById, updateCaseFile, getCasePhases, addCaseAnnotation } from "../actions"
 import { uploadDocumentAndProcess } from "../uploadActions"
-import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check, FileIcon } from "lucide-react"
+import { ArrowLeft, Briefcase, CalendarDays, Clock, FileText, Scale, Users, MessageSquare, Paperclip, Send, Edit3, X, Check, FileIcon, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -99,20 +99,38 @@ export default function CaseDetailPage() {
             } else {
                 const res = await addCaseAnnotation(caseFile.id, newAnnotation, actionType)
                 if (!res.success) {
-                    alert('Error añadiendo anotación')
+                    alert('Error guardando actuación: ' + res.error)
                 }
             }
-            // Reset and reload
+
             setNewAnnotation("")
             setActionType("")
             setAttachedFile(null)
-            const data = await getCaseFileById(caseFile.id)
-            setCaseFile(data)
-        } catch (e) {
-            console.error(e)
-        }
+            if (fileInputRef.current) fileInputRef.current.value = ""
 
-        setSubmittingAnnotation(false)
+            const updatedCase = await getCaseFileById(caseFile.id)
+            setCaseFile(updatedCase)
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setSubmittingAnnotation(false)
+        }
+    }
+
+    const handleDeleteAnnotation = async (annotationId: string) => {
+        if (!confirm("¿Estás seguro de que deseas eliminar esta actuación? Esta acción no se puede deshacer.")) return
+        try {
+            const { deleteCaseAnnotation } = await import("../actions")
+            const res = await deleteCaseAnnotation(annotationId, caseFile.id)
+            if (res.success) {
+                const updatedCase = await getCaseFileById(caseFile.id)
+                setCaseFile(updatedCase)
+            } else {
+                alert("Error eliminando actuación: " + res.error)
+            }
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,9 +343,20 @@ export default function CaseDetailPage() {
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap bg-gray-50 px-2 py-1 rounded-md">
-                                                        {new Date(note.createdAt).toLocaleString()}
-                                                    </span>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap bg-gray-50 px-2 py-1 rounded-md">
+                                                            {new Date(note.createdAt).toLocaleString()}
+                                                        </span>
+                                                        {note.authorId === caseFile.currentUserId && (
+                                                            <button
+                                                                onClick={() => handleDeleteAnnotation(note.id)}
+                                                                className="text-gray-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-50"
+                                                                title="Eliminar actuación"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 {note.type && (
                                                     <div className="mb-2 sm:hidden inline-block px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[10px] font-bold uppercase tracking-widest">

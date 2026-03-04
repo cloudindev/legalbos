@@ -108,7 +108,10 @@ export async function getCaseFileById(id: string) {
             }
         })
         if (!caseFile) return null
-        return JSON.parse(JSON.stringify(caseFile))
+        return {
+            ...JSON.parse(JSON.stringify(caseFile)),
+            currentUserId: session.user.id
+        }
     } catch (e: any) {
         console.error("GET CASE ERROR:", e)
         return null
@@ -232,6 +235,30 @@ export async function addCaseAnnotation(caseFileId: string, content: string, act
         return { success: true }
     } catch (e: any) {
         console.error("Error creating annotation:", e)
+        return { success: false, error: "Error bd" }
+    }
+}
+
+export async function deleteCaseAnnotation(annotationId: string, caseFileId: string) {
+    const session = await auth()
+    if (!session?.user?.id) return { success: false, error: "No autorizado" }
+
+    try {
+        const annotation = await prisma.annotation.findUnique({
+            where: { id: annotationId }
+        })
+
+        if (!annotation) return { success: false, error: "Actuación no encontrada" }
+        if (annotation.authorId !== session.user.id) return { success: false, error: "No tienes permiso para borrar esta actuación" }
+
+        await prisma.annotation.delete({
+            where: { id: annotationId }
+        })
+
+        revalidatePath(`/dashboard/cases/${caseFileId}`)
+        return { success: true }
+    } catch (e: any) {
+        console.error("Error deleting annotation:", e)
         return { success: false, error: "Error bd" }
     }
 }
