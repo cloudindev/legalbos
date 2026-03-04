@@ -93,6 +93,14 @@ export async function uploadDocumentAndProcess(formData: FormData) {
         if (tenant.aiEnabled && tenant.claudeApiKey && file.type === "application/pdf") {
             try {
                 const anthropic = new Anthropic({ apiKey: tenant.claudeApiKey })
+
+                // Polyfill for DOMMatrix since pdf-parse relies on an old pdf.js that expects a browser environment
+                if (typeof global !== 'undefined' && !(global as any).DOMMatrix) {
+                    (global as any).DOMMatrix = class DOMMatrix {
+                        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+                    }
+                }
+
                 // Extract text from PDF using pdf-parse
                 const pdfParseData = await require('pdf-parse')(Buffer.from(fileBuffer))
                 const pdfText = pdfParseData.text || ""
