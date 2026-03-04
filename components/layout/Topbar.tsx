@@ -25,14 +25,9 @@ export default async function Topbar() {
             {/* Right Actions */}
             <div className="flex items-center gap-6 ml-4">
                 <div className="flex items-center gap-4">
-                    <button type="button" className="relative text-gray-400 hover:text-gray-500 transition-colors">
-                        <span className="absolute -right-0.5 -top-0.5 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                    <div className="relative text-gray-400">
                         <Bell className="h-5 w-5" />
-                    </button>
-
-                    <button type="button" className="text-gray-400 hover:text-gray-500 transition-colors">
-                        <HelpCircle className="h-5 w-5" />
-                    </button>
+                    </div>
                 </div>
 
                 <div className="h-6 w-px bg-gray-200" />

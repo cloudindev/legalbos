@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
     Briefcase,
     Users,
@@ -30,6 +30,7 @@ const navigation = [
 
 export function Sidebar({ user }: { user?: any }) {
     const pathname = usePathname()
+    const router = useRouter()
 
     // Cálculo de nombre iniciales y rol
     const getInitials = (name?: string) => {
@@ -88,9 +89,9 @@ export function Sidebar({ user }: { user?: any }) {
 
             {/* Bottom Actions & User Profile */}
             <div className="flex flex-col gap-4 border-t border-gray-100 p-4">
-                <Button className="w-full bg-[#0B1528] hover:bg-slate-800 text-white rounded-lg shadow-sm font-bold">
+                <Button onClick={() => router.push('/dashboard/cases/new')} className="w-full bg-[#0B1528] hover:bg-slate-800 text-white rounded-lg shadow-sm font-bold">
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Nuevo Expediente
+                    Nuevo expediente
                 </Button>
 
                 <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3">
